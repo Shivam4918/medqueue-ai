@@ -107,6 +107,15 @@ DATABASES = {
     }
 }
 
+# if FORCE_SQLITE present, fallback to sqlite for quick local dev
+if os.getenv('FORCE_SQLITE', '') == '1':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 
 
 # Password validation
