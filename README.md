@@ -2,7 +2,7 @@
 
  MedQueue AI — Real-time OPD queue management for hospitals: digital tokens, live wait-times, AI crowd forecasting.
 
-## MVP (Week 1)
+>## MVP (Week 1)
 
 - Register hospital, add doctors
 - Patient: take token (online), view current queue & ETA
@@ -11,7 +11,7 @@
 - Real-time updates (WebSockets) — token created/updated broadcasts
 - Basic analytics storage for ML (logs saved to MongoDB later)
 
-## Tech stack
+>## Tech stack
 
 - Frontend: HTML + Tailwind + HTMX/vanilla JS
 - Backend: Django + Django REST Framework + Channels
