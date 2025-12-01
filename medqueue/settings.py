@@ -114,7 +114,7 @@ DATABASES = {
     }
 }
 
-<<<<<<< HEAD
+
 # if FORCE_SQLITE present, fallback to sqlite for quick local dev
 if os.getenv('FORCE_SQLITE', '') == '1':
     DATABASES = {
@@ -125,10 +125,9 @@ if os.getenv('FORCE_SQLITE', '') == '1':
     }
 
 
-=======
+
 # MongoDB connection string (for analytics/ML)
 MONGO_URL = os.getenv('MONGO_URL', 'mongodb://127.0.0.1:27017')
->>>>>>> 29c3da9 (create Django project and base apps (users,hospitals,doctors,queue,api))
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
