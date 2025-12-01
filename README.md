@@ -1,6 +1,6 @@
 # MedQueue AI
 
-**One-liner:** MedQueue AI — Real-time OPD queue management for hospitals: digital tokens, live wait-times, AI crowd forecasting.
+ MedQueue AI — Real-time OPD queue management for hospitals: digital tokens, live wait-times, AI crowd forecasting.
 
 ## MVP (Week 1)
 
