@@ -1,0 +1,37 @@
+# version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: medqueue-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: medqueue
+      MYSQL_USER: medqueue_user
+      MYSQL_PASSWORD: Shivam4918@
+    ports:
+      - "3307:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongo:
+    image: mongo:6
+    container_name: medqueue-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7
+    container_name: medqueue-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+volumes:
+  mysql_data:
+  mongo_data:
