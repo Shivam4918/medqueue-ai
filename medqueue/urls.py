@@ -11,4 +11,5 @@ urlpatterns = [
     # 🔐 OTP Authentication routes
     path('api/auth/', include('users.urls')),
     path('api/', include('hospitals.urls')), 
+    path('api/', include('doctors.urls')),   # or combine in single api router
 ]
