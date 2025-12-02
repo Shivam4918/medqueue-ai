@@ -147,6 +147,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email settings for OTP system
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@medqueue.ai"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
