@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'channels',
+    'widget_tweaks',
 
     # Local apps
     'core',
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
     'doctors',
     'queue',
     'api',
+    'dashboard',
 ]
 
 
@@ -78,7 +80,8 @@ ROOT_URLCONF = 'medqueue.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # Add top-level templates directory so our dashboard templates load
+        'DIRS': [ BASE_DIR / "templates" ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,7 +160,8 @@ DEFAULT_FROM_EMAIL = "noreply@medqueue.ai"
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Use Asia/Kolkata timezone since you're developing from India
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -175,3 +179,21 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
 
+# -------------- Dashboard / Auth convenience settings --------------
+# Templates DIRS already set above; add login/logout redirects used by dashboard
+LOGIN_URL = "/dashboard/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/dashboard/login/"
+
+# Optional: static files dir for local assets (uncomment if you create a top-level `static` folder)
+# STATICFILES_DIRS = [ BASE_DIR / "static" ]
+
+# Optional / helpful DRF defaults (uncomment to enable)
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": (
+#         "rest_framework.authentication.SessionAuthentication",
+#     ),
+#     "DEFAULT_PERMISSION_CLASSES": (
+#         "rest_framework.permissions.IsAuthenticated",
+#     ),
+# }

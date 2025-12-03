@@ -7,8 +7,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # 🔐 OTP Authentication routes
+    path("dashboard/", include("dashboard.urls")), 
     path('api/auth/', include('users.urls')),
     path('api/hospitals/', include('hospitals.urls')), 
     path('api/', include('doctors.urls')),  
