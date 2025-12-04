@@ -1,11 +1,13 @@
 # token_queue/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import TokenViewSet, CreateTokenAPIView, TokenBookAPIView, WalkinTokenAPIView
 
 from .views import (
     TokenViewSet,
     CreateTokenAPIView,   # admin/receptionist open create
     TokenBookAPIView,     # patient booking API
+    WalkinTokenAPIView,
 )
 
 router = DefaultRouter()
@@ -20,4 +22,5 @@ urlpatterns = [
 
     # New patient booking endpoint
     path("book/", TokenBookAPIView.as_view(), name="token-book"),
+    path("walkin/", WalkinTokenAPIView.as_view(), name="token-walkin"),
 ]

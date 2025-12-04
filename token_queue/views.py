@@ -6,11 +6,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from users.permissions import IsReceptionist, IsDoctor
+from users.models import User
 from .models import Token
 from .serializers import (
     TokenSerializer,
     TokenCreateSerializer,
     TokenBookingSerializer,
+    WalkinTokenSerializer,
 )
 from .services import create_token, estimate_wait_for_token
 from doctors.models import Doctor
@@ -92,6 +94,66 @@ class TokenBookAPIView(APIView):
         return Response({
             "token_id": token.id,
             "token_number": token.token_number,
+            "estimated_wait_minutes": minutes,
+            "eta": timezone.localtime(eta_dt).isoformat()
+        }, status=status.HTTP_201_CREATED)
+
+
+class WalkinTokenAPIView(APIView):
+    """
+    POST /api/token_queue/walkin/
+    Body: { "doctor_id": <int>, "patient_name": "<name>" }
+    Only users with receptionist role should be able to call this (IsReceptionist).
+    """
+    permission_classes = [IsReceptionist]
+
+    def post(self, request, *args, **kwargs):
+        serializer = WalkinTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        doctor_id = serializer.validated_data["doctor_id"]
+        patient_name = serializer.validated_data["patient_name"].strip()
+
+        # fetch doctor + hospital
+        try:
+            doctor = Doctor.objects.get(pk=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"detail": "Doctor not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        hospital = getattr(doctor, "hospital", None)
+        if hospital is None:
+            return Response({"detail": "Doctor has no hospital associated."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a pseudo patient user
+        base_username = f"walkin_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{counter}"
+            counter += 1
+
+        patient = User.objects.create_user(username=username)
+        patient.first_name = patient_name
+        patient.role = "patient"
+        patient.set_unusable_password()
+        # Optionally attach hospital to patient if your User model has hospital FK
+        try:
+            if hasattr(patient, "hospital") and hospital is not None:
+                patient.hospital = hospital
+        except Exception:
+            pass
+        patient.save()
+
+        # create token via your service (ensures numbering & constraints)
+        token = create_token(patient=patient, doctor=doctor, hospital=hospital, priority=0)
+
+        # estimate wait
+        minutes, eta_dt = estimate_wait_for_token(doctor.id, token.token_number)
+
+        return Response({
+            "token_id": token.id,
+            "token_number": token.token_number,
+            "patient_username": patient.username,
+            "patient_name": patient_name,
             "estimated_wait_minutes": minutes,
             "eta": timezone.localtime(eta_dt).isoformat()
         }, status=status.HTTP_201_CREATED)

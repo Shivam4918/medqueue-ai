@@ -147,3 +147,18 @@ class TokenBookingSerializer(serializers.Serializer):
         attrs["hospital"] = getattr(doctor, "hospital", None)
 
         return attrs
+
+
+# ------------------------------
+# Walk-in serializer for receptionists
+# ------------------------------
+class WalkinTokenSerializer(serializers.Serializer):
+    doctor_id = serializers.IntegerField()
+    patient_name = serializers.CharField(max_length=150)
+
+    def validate_doctor_id(self, value):
+        try:
+            Doctor.objects.get(pk=value)
+        except Doctor.DoesNotExist:
+            raise serializers.ValidationError("Doctor not found.")
+        return value
