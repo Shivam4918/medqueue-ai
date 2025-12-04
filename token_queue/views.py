@@ -1,6 +1,7 @@
 # token_queue/views.py
+from django.db import transaction
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -157,3 +158,161 @@ class WalkinTokenAPIView(APIView):
             "estimated_wait_minutes": minutes,
             "eta": timezone.localtime(eta_dt).isoformat()
         }, status=status.HTTP_201_CREATED)
+
+
+# -----------------------------
+# Added: doctor queue + token actions
+# -----------------------------
+def _user_can_manage_token(user, token: Token) -> bool:
+    """Return True if user may manage this token."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    role = getattr(user, "role", None)
+    if role == "receptionist":
+        # receptionist may manage tokens (you could restrict by hospital if user.hospital exists)
+        return True
+    if role == "doctor":
+        # doctor may manage their own tokens only
+        try:
+            return token.doctor.user_id == user.id
+        except Exception:
+            return getattr(token.doctor, "user_id", None) == user.id
+    return False
+
+
+class DoctorQueueAPIView(generics.ListAPIView):
+    """
+    GET /api/doctors/<id>/queue/
+    List active tokens for a doctor (waiting + in_service)
+    """
+    serializer_class = TokenSerializer
+    permission_classes = [IsAuthenticated]  # change if you want stricter checks
+
+    def get_queryset(self):
+        doctor_id = self.kwargs.get("doctor_id")
+        return Token.objects.filter(
+            doctor_id=doctor_id,
+            status__in=["waiting", "in_service"]
+        ).order_by("-priority", "token_number")  # priority desc then number asc
+
+
+class TokenActionBase(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_token(self, pk):
+        try:
+            return Token.objects.get(pk=pk)
+        except Token.DoesNotExist:
+            return None
+
+    def assert_manageable(self, request_user, token):
+        if not _user_can_manage_token(request_user, token):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+        return None
+
+
+class TokenCallAPIView(TokenActionBase):
+    """
+    POST /api/tokens/<id>/call/
+    Mark token as in_service and set called_at to now.
+    """
+    def post(self, request, pk, *args, **kwargs):
+        token = self.get_token(pk)
+        if not token:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        denied = self.assert_manageable(request.user, token)
+        if denied:
+            return denied
+
+        with transaction.atomic():
+            token.status = "in_service"
+            token.called_at = timezone.now()
+            token.save(update_fields=["status", "called_at", "updated_at"])
+
+        return Response({
+            "detail": "Token called.",
+            "token_id": token.id,
+            "token_number": token.token_number,
+            "status": token.status,
+            "called_at": token.called_at
+        })
+
+
+class TokenCompleteAPIView(TokenActionBase):
+    """
+    POST /api/tokens/<id>/complete/
+    Mark token as completed.
+    """
+    def post(self, request, pk, *args, **kwargs):
+        token = self.get_token(pk)
+        if not token:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        denied = self.assert_manageable(request.user, token)
+        if denied:
+            return denied
+
+        with transaction.atomic():
+            token.status = "completed"
+            token.save(update_fields=["status", "updated_at"])
+
+        return Response({"detail": "Token completed.", "token_id": token.id, "status": token.status})
+
+
+class TokenSkipAPIView(TokenActionBase):
+    """
+    POST /api/tokens/<id>/skip/
+    Mark token as skipped.
+    """
+    def post(self, request, pk, *args, **kwargs):
+        token = self.get_token(pk)
+        if not token:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        denied = self.assert_manageable(request.user, token)
+        if denied:
+            return denied
+
+        with transaction.atomic():
+            token.status = "skipped"
+            token.save(update_fields=["status", "updated_at"])
+
+        return Response({"detail": "Token skipped.", "token_id": token.id, "status": token.status})
+
+
+class TokenPriorityAPIView(TokenActionBase):
+    """
+    POST /api/tokens/<id>/priority/
+    Body: {"priority": 0|1}
+    Set or update priority for a token.
+    """
+    def post(self, request, pk, *args, **kwargs):
+        token = self.get_token(pk)
+        if not token:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        denied = self.assert_manageable(request.user, token)
+        if denied:
+            return denied
+
+        priority = request.data.get("priority")
+        try:
+            priority = int(priority)
+            if priority not in (0, 1):
+                raise ValueError()
+        except Exception:
+            return Response({"detail": "Invalid priority value. Use 0 or 1."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            token.priority = priority
+            token.save(update_fields=["priority", "updated_at"])
+
+        return Response({
+            "detail": "Token priority updated.",
+            "token_id": token.id,
+            "token_number": token.token_number,
+            "priority": token.priority
+        })
