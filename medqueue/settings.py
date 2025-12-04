@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'hospitals',
     'users',
     'doctors',
-    'queue',
+    'token_queue',
     'api',
     'dashboard',
 ]
