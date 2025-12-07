@@ -1,3 +1,16 @@
 from django.contrib import admin
+from .models import Token
 
-# Register your models here.
+@admin.register(Token)
+class TokenAdmin(admin.ModelAdmin):
+    list_display = ("id", "token_number", "doctor", "patient", "status", "priority", "booked_at")
+    list_filter = ("status", "priority")
+    search_fields = ("patient__username", "doctor__user__username")
+
+    # Add readonly fields only if present
+    readonly = []
+    if hasattr(Token, "created_at"):
+        readonly.append("created_at")
+    if hasattr(Token, "updated_at"):
+        readonly.append("updated_at")
+    readonly_fields = tuple(readonly)

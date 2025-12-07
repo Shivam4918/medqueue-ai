@@ -1,0 +1,92 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Doctor Queue{% endblock %}
+
+{% block content %}
+<div class="box token-card">
+    <h2 class="title is-5">Doctor Queue Dashboard</h2>
+
+    <div class="field">
+        <label class="label">Doctor ID</label>
+        <div class="control">
+            <input id="doctor-id" class="input" type="number"
+                value="{% if request.user.doctor_profile %}{{ request.user.doctor_profile.id }}{% endif %}" />
+        </div>
+    </div>
+
+    <div>
+        <button id="load-queue" class="button is-primary">Load Queue</button>
+    </div>
+
+    <hr>
+
+    <table class="table is-fullwidth" id="queue-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Patient</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    async function loadQueue() {
+        const doctorId = document.getElementById('doctor-id').value;
+        if (!doctorId) { alert('Enter doctor id'); return; }
+        const resp = await fetch(`/api/token_queue/doctors/${doctorId}/queue/`, { credentials: 'same-origin' });
+        if (!resp.ok) { alert('Failed loading queue'); return; }
+        const items = await resp.json();
+        const tbody = document.querySelector('#queue-table tbody');
+        tbody.innerHTML = '';
+        items.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+      <td>${t.token_number}</td>
+      <td>${t.patient || t.patient_id}</td>
+      <td>${t.status}</td>
+      <td>
+        <button class="button is-small call" data-id="${t.id}">Call</button>
+        <button class="button is-small is-warning skip" data-id="${t.id}">Skip</button>
+        <button class="button is-small is-success complete" data-id="${t.id}">Complete</button>
+        <button class="button is-small is-danger pri" data-id="${t.id}">Priority</button>
+      </td>
+    `;
+            tbody.appendChild(tr);
+        });
+
+        // actions
+        document.querySelectorAll('.call').forEach(b => b.onclick = () => action(b.dataset.id, 'call'));
+        document.querySelectorAll('.skip').forEach(b => b.onclick = () => action(b.dataset.id, 'skip'));
+        document.querySelectorAll('.complete').forEach(b => b.onclick = () => action(b.dataset.id, 'complete'));
+        document.querySelectorAll('.pri').forEach(b => b.onclick = () => setPriority(b.dataset.id));
+    }
+
+    async function action(tokenId, act) {
+        const url = `/api/token_queue/tokens/${tokenId}/${act}/`;
+        const resp = await fetch(url, { method: 'POST', credentials: 'same-origin' });
+        if (!resp.ok) { alert('Action failed'); return; }
+        alert((await resp.json()).detail || 'OK');
+        loadQueue();
+    }
+
+    async function setPriority(tokenId) {
+        const p = prompt('Set priority: 0 (normal) or 1 (emergency)', '1');
+        if (p === null) return;
+        const url = `/api/token_queue/tokens/${tokenId}/priority/`;
+        const resp = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priority: Number(p) })
+        });
+        if (!resp.ok) { alert('Priority change failed'); return; }
+        alert('Priority updated');
+        loadQueue();
+    }
+
+    document.getElementById('load-queue').addEventListener('click', loadQueue);
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Your Token{% endblock %}
+
+{% block content %}
+<div class="box token-card">
+    <h2 class="title is-5">Your Current Token</h2>
+
+    <div id="status-area">
+        <p id="no-token">No active token found.</p>
+
+        <div id="token-info" style="display:none;">
+            <p><strong>Token:</strong> <span id="token-number"></span></p>
+            <p><strong>Status:</strong> <span id="token-status"></span></p>
+            <p><strong>ETA:</strong> <span id="token-eta"></span></p>
+            <button id="refresh" class="button is-small">Refresh</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchMyToken() {
+        // Example: call an API endpoint that returns the authenticated user's active token
+        // You need to create endpoint or reuse Token list and filter by request.user on server.
+        const resp = await fetch('/api/token_queue/?patient__username={{ request.user.username }}', {
+            credentials: 'same-origin'
+        });
+        if (!resp.ok) { console.error('Failed to fetch'); return; }
+        const list = await resp.json();
+        if (list && list.length) {
+            const token = list[0];
+            document.getElementById('no-token').style.display = 'none';
+            document.getElementById('token-info').style.display = 'block';
+            document.getElementById('token-number').innerText = token.token_number;
+            document.getElementById('token-status').innerText = token.status;
+            // ETA may be provided; otherwise estimate from token_number
+            document.getElementById('token-eta').innerText = token.eta || 'Calculating...';
+        } else {
+            document.getElementById('no-token').style.display = 'block';
+            document.getElementById('token-info').style.display = 'none';
+        }
+    }
+
+    document.getElementById('refresh').addEventListener('click', fetchMyToken);
+    fetchMyToken();
+</script>
+{% endblock %}
