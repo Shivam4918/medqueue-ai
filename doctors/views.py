@@ -1,15 +1,21 @@
+# doctors/views.py
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, SAFE_METHODS
+
 from .models import Doctor
 from .serializers import DoctorSerializer
-from .permissions import IsHospitalAdminOrSuperuser, IsDoctorOwnerOrHospitalAdminOrSuperuser
+from .permissions import (
+    IsHospitalAdminOrSuperuser,
+    IsDoctorOwnerOrHospitalAdminOrSuperuser
+)
 
 class DoctorViewSet(viewsets.ModelViewSet):
     """
-    - GET (list/retrieve): AllowAny (public); change to IsAuthenticated if you prefer
-    - POST (create): only HospitalAdmin or superuser
-    - PUT/PATCH/DELETE: superuser or hospital admin OR the doctor who owns the record
+    Doctor management:
+    - GET (list/retrieve): public (AllowAny) or switch to IsAuthenticated if needed.
+    - POST: only HospitalAdmin or Superuser.
+    - PUT/PATCH/DELETE: HospitalAdmin, Superuser, or Doctor who owns the profile.
     """
     queryset = Doctor.objects.select_related("user", "hospital").all()
     serializer_class = DoctorSerializer
@@ -17,52 +23,47 @@ class DoctorViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         method = self.request.method
 
-        # public read
+        # Read operations (GET)
         if method in SAFE_METHODS:
             return [AllowAny()]
 
-        # create -> only hospital admin or superuser
+        # Create doctor
         if method == "POST":
             return [IsAuthenticated(), IsHospitalAdminOrSuperuser()]
 
-        # updates/deletes -> object-level permission (checked in has_object_permission)
+        # Modify doctor
         if method in ("PUT", "PATCH", "DELETE"):
             return [IsAuthenticated(), IsDoctorOwnerOrHospitalAdminOrSuperuser()]
 
-        # fallback: authenticated
         return [IsAuthenticated()]
 
     def get_queryset(self):
         user = getattr(self.request, "user", None)
-        # doctors should only see their own record when listing (optional)
+
+        # If the logged-in user is a doctor, return only their own record
         if user and user.is_authenticated and getattr(user, "role", None) == "doctor":
             return self.queryset.filter(user_id=user.id)
+
         return self.queryset
 
     def perform_create(self, serializer):
-        """
-        When a doctor record is created by a hospital_admin or superuser,
-        optionally ensure the linked User has role='doctor'.
-        """
         instance = serializer.save()
-        # ensure linked user's role is doctor
-        try:
-            user = instance.user
-            if getattr(user, "role", None) != "doctor":
-                user.role = "doctor"
-                user.save(update_fields=["role"])
-        except Exception:
-            pass
+
+        # Ensure assigned user has role="doctor"
+        user = instance.user
+        if getattr(user, "role", None) != "doctor":
+            user.role = "doctor"
+            user.save(update_fields=["role"])
+
         return instance
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        # keep user's role as 'doctor' after update
-        try:
-            user = instance.user
-            if getattr(user, "role", None) != "doctor":
-                user.role = "doctor"
-                user.save(update_fields=["role"])
-        except Exception:
-            pass
+
+        # Keep user's role as doctor
+        user = instance.user
+        if getattr(user, "role", None) != "doctor":
+            user.role = "doctor"
+            user.save(update_fields=["role"])
+
         return instance

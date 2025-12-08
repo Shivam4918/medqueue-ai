@@ -1,6 +1,4 @@
-from django.db import models
-
-# Create your models here.
+# core/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -20,16 +18,6 @@ class Hospital(models.Model):
     def __str__(self):
         return self.name
 
-class Doctor(models.Model):
-    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='doctors')
-    name = models.CharField(max_length=255)
-    speciality = models.CharField(max_length=255, blank=True)
-    opd_start = models.TimeField(null=True, blank=True)
-    opd_end = models.TimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.name} ({self.hospital.name})"
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient_profile', null=True, blank=True)
@@ -39,6 +27,7 @@ class Patient(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Token(models.Model):
     STATUS_WAITING = 'waiting'
@@ -54,7 +43,8 @@ class Token(models.Model):
     ]
 
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='tokens')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='tokens')
+    # doctor now references the Doctor model in the doctors app using the string form
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='tokens')
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True, related_name='tokens')
     number = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_WAITING)
@@ -71,4 +61,6 @@ class Token(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.hospital.name} - {self.doctor.name} #{self.number}"
+        # protect if doctor is a string-repr
+        doctor_name = getattr(self.doctor, "name", str(self.doctor))
+        return f"{self.hospital.name} - {doctor_name} #{self.number}"

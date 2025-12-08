@@ -1,5 +1,4 @@
-from django.shortcuts import render
-
+# core/views.py
 from rest_framework import viewsets
 from users.permissions import IsPatient
 from .models import Patient
@@ -9,4 +8,3 @@ class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = [IsPatient]
-
