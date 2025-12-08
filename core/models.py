@@ -44,7 +44,7 @@ class Token(models.Model):
 
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='tokens')
     # doctor now references the Doctor model in the doctors app using the string form
-    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='tokens')
+    doctor = models.ForeignKey('doctors.Doctor', on_delete=models.CASCADE, related_name='core_tokens')
     patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True, related_name='tokens')
     number = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_WAITING)

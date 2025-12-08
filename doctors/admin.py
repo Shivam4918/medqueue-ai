@@ -4,8 +4,9 @@ from .models import Doctor
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    # make sure these fields exist on your Doctor model; change names if necessary
-    list_display = ("user", "hospital", "specialization", "opd_start", "opd_end", "is_active")
-    search_fields = ("user__username", "user__email", "specialization", "hospital__name")
+    # Use actual fields present on doctors.models.Doctor
+    list_display = ("name", "hospital", "speciality", "opd_start", "opd_end", "is_active")
+    search_fields = ("name", "speciality", "hospital__name")
     list_filter = ("hospital", "is_active")
-    raw_id_fields = ("user", "hospital")
+    # no 'user' field present — use hospital as raw id for faster admin if desired
+    raw_id_fields = ("hospital",)

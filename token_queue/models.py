@@ -26,9 +26,9 @@ class Token(models.Model):
     )
 
     doctor = models.ForeignKey(
-        Doctor,
+        'doctors.Doctor',
         on_delete=models.CASCADE,
-        related_name="tokens"
+        related_name="queue_tokens"
     )
 
     patient = models.ForeignKey(
