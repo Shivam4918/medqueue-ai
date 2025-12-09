@@ -3,7 +3,7 @@ from django.db import models
 
 class Doctor(models.Model):
     # Fields copied exactly from OLD core.models.Doctor
-    hospital = models.ForeignKey("hospitals.Hospital", on_delete=models.CASCADE, related_name='doctors')
+    hospital  = models.ForeignKey("hospitals.Hospital", on_delete=models.CASCADE, related_name='doctors')
     name = models.CharField(max_length=255)
     speciality = models.CharField(max_length=255, blank=True)
     opd_start = models.TimeField(null=True, blank=True)
