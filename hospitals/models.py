@@ -8,10 +8,11 @@ class Hospital(models.Model):
     timezone = models.CharField(max_length=64, default="UTC")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         ordering = ["name"]
         db_table = 'core_hospital'
+
     def __str__(self) -> str:
         return f"{self.name} — {self.city}"
