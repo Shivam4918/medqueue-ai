@@ -22,7 +22,7 @@ class Token(models.Model):
     hospital = models.ForeignKey(
         Hospital,
         on_delete=models.CASCADE,
-        related_name="tokens"
+        related_name="queue_tokens"
     )
 
     doctor = models.ForeignKey(

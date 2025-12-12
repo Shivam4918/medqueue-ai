@@ -1,10 +1,5 @@
 from django.contrib import admin
-from .models import Hospital, Patient, Token
-
-@admin.register(Hospital)
-class HospitalAdmin(admin.ModelAdmin):
-    list_display = ('name', 'contact_number', 'created_at')
-    search_fields = ('name',)
+from .models import Patient, Token
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):

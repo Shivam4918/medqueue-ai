@@ -12,6 +12,6 @@ class Hospital(models.Model):
 
     class Meta:
         ordering = ["name"]
-
+        db_table = 'core_hospital'
     def __str__(self) -> str:
         return f"{self.name} — {self.city}"
