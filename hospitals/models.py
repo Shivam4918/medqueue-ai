@@ -5,17 +5,23 @@ class Hospital(models.Model):
     name = models.CharField(max_length=200)
     address = models.TextField(blank=True)
 
-    # keep the real DB column name here
-    contact_number = models.CharField(max_length=30, blank=True, null=True)
+    # Map model field to the existing DB column contact_number.
+    contact_phone = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        db_column='contact_number',
+        help_text='Primary contact number (stored in DB column contact_number)'
+    )
 
-    # backwards-compatible alias for code that expects contact_phone
+    # Backwards-compatible property if some code still reads contact_number
     @property
-    def contact_phone(self):
-        return self.contact_number or ""
+    def contact_number(self):
+        return self.contact_phone or ""
 
-    @contact_phone.setter
-    def contact_phone(self, value):
-        self.contact_number = value
+    @contact_number.setter
+    def contact_number(self, value):
+        self.contact_phone = value
 
     city = models.CharField(max_length=100, blank=True)
     timezone = models.CharField(max_length=64, default="UTC")
