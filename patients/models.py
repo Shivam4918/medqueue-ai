@@ -18,7 +18,7 @@ class Patient(models.Model):
     dob = models.DateField(null=True, blank=True)
 
     class Meta:
-        db_table = 'core_patient'   # IMPORTANT: keeps existing DB table
+        db_table = 'patients_patient'   # IMPORTANT: keeps existing DB table
         ordering = ['name']
 
     def __str__(self):

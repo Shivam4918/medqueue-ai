@@ -3,9 +3,10 @@ from .models import Token
 
 @admin.register(Token)
 class TokenAdmin(admin.ModelAdmin):
-    list_display = ("id", "token_number", "doctor", "patient", "status", "priority", "booked_at")
+    list_display = ("id", "hospital", "doctor", "patient", "status", "created_at")
     list_filter = ("status", "priority")
-    search_fields = ("patient__username", "doctor__user__username")
+    search_fields = ("patient__user__username",)
+
 
     # Add readonly fields only if present
     readonly = []

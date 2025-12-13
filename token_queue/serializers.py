@@ -2,7 +2,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-
+from patients.models import Patient
+from users.models import User
 from hospitals.models import Hospital
 from doctors.models import Doctor
 from .models import Token
@@ -48,7 +49,8 @@ class TokenCreateSerializer(serializers.Serializer):
         patient = None
         if attrs.get("patient_id"):
             try:
-                patient = User.objects.get(id=attrs["patient_id"])
+                user = User.objects.get(id=attrs["patient_id"])
+                patient, _ = Patient.objects.get_or_create(user=user)
             except User.DoesNotExist:
                 raise serializers.ValidationError({"patient_id": "User not found."})
         elif attrs.get("phone"):

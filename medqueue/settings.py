@@ -52,14 +52,11 @@ INSTALLED_APPS = [
     'channels',
     'widget_tweaks',
 
-    # Local apps
-    'core',
-
     # your apps
-    'hospitals',
-    'patients',
     'users',
+    'hospitals',
     'doctors',
+    'patients',
     'token_queue',
     'api',
     'dashboard',

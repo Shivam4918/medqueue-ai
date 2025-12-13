@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Tuple
 from django.utils import timezone
 from django.db.models import Max
-
+from patients.models import Patient
 # imports adjusted for your app names
 from token_queue.models import Token       # <- token model lives in token_queue
 from doctors.models import Doctor
@@ -56,7 +56,7 @@ def estimate_wait_for_token(doctor_id: int, token_number: int, avg_minutes_per_p
     return eta_minutes, eta_datetime
 
 
-def create_token(patient: User, doctor: Doctor, hospital: Hospital = None, priority: int = 0) -> Token:
+def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, priority: int = 0) -> Token:
     if hospital is None:
         hospital = getattr(doctor, "hospital", None)
         if hospital is None:

@@ -6,13 +6,8 @@ class Hospital(models.Model):
     address = models.TextField(blank=True)
 
     # Map model field to the existing DB column contact_number.
-    contact_phone = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True,
-        db_column='contact_number',
-        help_text='Primary contact number (stored in DB column contact_number)'
-    )
+    contact_phone = models.CharField(max_length=20)
+
 
     # Backwards-compatible property if some code still reads contact_number
     @property
@@ -29,9 +24,9 @@ class Hospital(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ["name"]
-        db_table = 'core_hospital'
+    # class Meta:
+    #     ordering = ["name"]
+    #     db_table = 'core_hospital'
 
     def __str__(self) -> str:
         return f"{self.name} — {self.city}"
