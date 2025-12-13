@@ -1,13 +1,18 @@
+# core/admin.py
 from django.contrib import admin
-from .models import Patient, Token
+from .models import Token
 
-@admin.register(Patient)
-class PatientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'phone')
-    search_fields = ('name', 'phone')
 
 @admin.register(Token)
 class TokenAdmin(admin.ModelAdmin):
-    list_display = ('hospital', 'doctor', 'number', 'status', 'is_emergency', 'queued_at')
-    list_filter = ('status', 'is_emergency', 'doctor')
+    list_display = (
+        'hospital',
+        'doctor',
+        'patient',
+        'number',
+        'status',
+        'is_emergency',
+        'queued_at',
+    )
+    list_filter = ('status', 'is_emergency', 'doctor', 'hospital')
     search_fields = ('number',)

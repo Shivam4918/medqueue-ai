@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
     # your apps
     'hospitals',
+    'patients',
     'users',
     'doctors',
     'token_queue',
