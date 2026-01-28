@@ -1,6 +1,8 @@
 # dashboard/urls.py
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
+from .views import receptionist_queue_page
+
 
 from .views import (
     DashboardHomeView,
@@ -8,6 +10,7 @@ from .views import (
     patient_token_page,
     doctor_queue_page,
     receptionist_walkin_page,
+    doctor_dashboard,          # ✅ ADD THIS
 )
 
 app_name = "dashboard"
@@ -21,8 +24,15 @@ urlpatterns = [
     path("", DashboardHomeView.as_view(), name="home"),
     path("hospital/<int:pk>/", HospitalDetailView.as_view(), name="hospital-detail"),
 
-    # ---------- New Pages (DAY 6) ----------
+    # ---------- Patient ----------
     path("patient/", patient_token_page, name="patient-token"),
-    path("doctor/", doctor_queue_page, name="doctor-queue"),
-    path("receptionist/walkin/", receptionist_walkin_page, name="walkin"),
+
+    # ---------- Doctor ----------
+    path("doctor/", doctor_queue_page, name="doctor-queue"),                 # OLD (queue page)
+    path("doctor/dashboard/", doctor_dashboard, name="doctor-dashboard"),    # ✅ NEW (Step 7)
+
+    # ---------- Receptionist ----------
+    path("receptionist/queue/", receptionist_queue_page, name="receptionist-queue"),
+    path("receptionist/walkin/", receptionist_walkin_page, name="walking"),
+    
 ]

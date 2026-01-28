@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard</title>
+
+    <!-- Doctor Dashboard JS -->
+    <script src="{% static 'dashboard/doctor_dashboard.js' %}" defer></script>
+</head>
+
+<body>
+
+    <h2>Doctor Queue</h2>
+
+    <!-- REQUIRED FOR JS -->
+    <input type="hidden" id="doctor-id" value="{{ doctor.id }}">
+
+    <!-- REQUIRED FOR POST APIs -->
+    {% csrf_token %}
+
+    <!-- Queue will be rendered here -->
+    <ul id="queue-list"></ul>
+
+</body>
+</html>

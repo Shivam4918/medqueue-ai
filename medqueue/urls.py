@@ -14,5 +14,7 @@ urlpatterns = [
     path('api/hospitals/', include('hospitals.urls')), 
     path("api/doctors/", include("doctors.urls")), 
     path("api/core/", include("core.urls")), 
+    path("dashboard/", include("dashboard.urls")),
+
     # or combine in single api router
 ]

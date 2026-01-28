@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Receptionist Queue</title>
+    <script src="{% static 'dashboard/receptionist_queue.js' %}" defer></script>
+</head>
+
+<body>
+
+    <h2>Receptionist – Live Queue</h2>
+
+    <!-- Doctor selector -->
+    <select id="doctor-select">
+        <option value="">-- Select Doctor --</option>
+        {% for doctor in doctors %}
+        <option value="{{ doctor.id }}">
+            {{ doctor.user.username }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <hr>
+
+    <!-- Queue list -->
+    <ul id="queue-list"></ul>
+
+</body>
+
+</html>

@@ -2,24 +2,26 @@
 ASGI config for medqueue project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
 import django
-from channels.routing import ProtocolTypeRouter, URLRouter
-from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'medqueue.settings')
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "medqueue.settings")
 django.setup()
 
-# import websocket routes here (create medqueue/routing.py next)
+# Import websocket routes
 from .routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": URLRouter(websocket_urlpatterns),
-})
 
+    # ✅ WebSocket support with authentication
+    "websocket": AuthMiddlewareStack(
+        URLRouter(websocket_urlpatterns)
+    ),
+})

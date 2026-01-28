@@ -87,3 +87,35 @@ def receptionist_walkin_page(request):
     if getattr(request.user, "role", None) != "receptionist" and not request.user.is_superuser:
         return redirect("dashboard:patient-token")
     return render(request, "dashboard/receptionist_walkin.html", {})
+
+@login_required
+def receptionist_queue_page(request):
+    if getattr(request.user, "role", None) != "receptionist" and not request.user.is_superuser:
+        return redirect("dashboard:patient-token")
+
+    doctors = Doctor.objects.all().order_by("user__username")
+
+    return render(
+        request,
+        "dashboard/receptionist_queue.html",
+        {"doctors": doctors}
+    )
+
+
+@login_required
+def doctor_dashboard(request):
+    """
+    Doctor dashboard with live queue (Step 7).
+    Only users with doctor profile can access.
+    """
+    try:
+        doctor = Doctor.objects.get(user=request.user)
+    except Doctor.DoesNotExist:
+        return redirect("dashboard:home")  # or patient page
+
+    return render(
+        request,
+        "dashboard/doctor_dashboard.html",
+        {"doctor": doctor}
+    )
+
