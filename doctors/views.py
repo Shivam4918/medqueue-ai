@@ -1,7 +1,10 @@
 # doctors/views.py
+from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from users.notifications import create_notification
 from rest_framework.permissions import AllowAny, IsAuthenticated, SAFE_METHODS
+from token_queue.models import Token
 
 from .models import Doctor
 from .serializers import DoctorSerializer
@@ -67,3 +70,21 @@ class DoctorViewSet(viewsets.ModelViewSet):
             user.save(update_fields=["role"])
 
         return instance
+class DoctorDelayAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, doctor_id):
+        reason = request.data.get("reason", "Doctor is delayed.")
+
+        tokens = Token.objects.filter(
+            doctor_id=doctor_id,
+            status="waiting"
+        )
+
+        for token in tokens:
+            create_notification(
+                token.patient.user,
+                f"Delay notice: {reason}"
+            )
+
+        return Response({"message": "Patients notified"})

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Notifications</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+        }
+
+        .box {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .notification {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .unread {
+            background: #eef5ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h2>🔔 Notifications</h2>
+
+        {% for n in notifications %}
+        <div class="notification {% if not n.is_read %}unread{% endif %}">
+            {{ n.message }}
+            <div style="font-size: 12px; color: #666;">
+                {{ n.created_at|date:"d M Y, H:i" }}
+            </div>
+        </div>
+        {% empty %}
+        <p>No notifications.</p>
+        {% endfor %}
+    </div>
+
+</body>
+
+</html>

@@ -5,12 +5,15 @@ from django.utils import timezone
 from datetime import timedelta
 import random
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 
-from .models import OTP, User, generate_otp
+from .models import OTP, User, generate_otp, Notification
 from .serializers import SendOTPSerializer, VerifyOTPSerializer
 
 
@@ -116,3 +119,20 @@ class VerifyOTPView(APIView):
             },
             "created": created
         }, status=status.HTTP_200_OK)
+    
+@login_required
+def notification_list(request):
+    notifications = Notification.objects.filter(user=request.user)
+    return render(
+        request,
+        "notifications/list.html",
+        {"notifications": notifications}
+    )
+
+@login_required
+def mark_notifications_read(request):
+    Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).update(is_read=True)
+    return redirect("notifications")

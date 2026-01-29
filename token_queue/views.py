@@ -25,6 +25,7 @@ from .serializers import (
 )
 from .services import create_token, estimate_wait_for_token
 from .realtime import broadcast_queue_update
+from users.notifications import create_notification
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -294,23 +295,46 @@ class TokenCallAPIView(TokenActionBase):
             return denied
 
         with transaction.atomic():
+            # 1️⃣ Mark current token as in service
             token.status = "in_service"
             token.called_at = timezone.now()
             token.save(update_fields=["status", "called_at", "updated_at"])
 
-        # 🔴 REAL-TIME BROADCAST (ADD HERE)
+            # 2️⃣ Notify CURRENT patient (token called)
+            if token.patient and token.patient.user:
+                create_notification(
+                    token.patient.user,
+                    f"Your token {token.token_number} has been called. Please proceed."
+                )
+
+            # 3️⃣ Find NEXT waiting token
+            next_token = Token.objects.filter(
+                doctor=token.doctor,
+                status="waiting"
+            ).order_by("token_number").first()
+
+            # 4️⃣ Notify NEXT patient (token coming next)
+            if next_token and next_token.patient and next_token.patient.user:
+                create_notification(
+                    next_token.patient.user,
+                    f"Your token {next_token.token_number} is coming next."
+                )
+
+        # 5️⃣ Real-time WebSocket broadcast
         broadcast_queue_update(
             token.doctor.id,
             {
                 "event": "token_called",
                 "token_id": token.id,
+                "token_number": token.token_number,
                 "status": "in_service"
             }
         )
 
-
-        return Response({"detail": "Token called.", "token_number": token.token_number})
-
+        return Response({
+            "detail": "Token called.",
+            "token_number": token.token_number
+        })
 
 class TokenCompleteAPIView(TokenActionBase):
     def post(self, request, pk):
