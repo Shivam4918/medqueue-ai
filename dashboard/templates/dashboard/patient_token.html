@@ -1,46 +1,80 @@
 {% extends "dashboard/base.html" %}
-{% block title %}Your Token{% endblock %}
+{% block title %}Patient Dashboard{% endblock %}
 
 {% block content %}
 <div class="box token-card">
     <h2 class="title is-5">Your Current Token</h2>
 
     <div id="status-area">
-        <p id="no-token">No active token found.</p>
+        <!-- No token message -->
+        <p id="no-token" style="display:none;">
+            No active token found.
+            <br>
+            <a href="/dashboard/patient/" class="button is-link is-small mt-2">
+                Book Token
+            </a>
+        </p>
 
+        <!-- Token info -->
         <div id="token-info" style="display:none;">
-            <p><strong>Token:</strong> <span id="token-number"></span></p>
+            <p><strong>Token Number:</strong> <span id="token-number"></span></p>
+            <p><strong>Doctor:</strong> <span id="doctor-name"></span></p>
+            <p><strong>Hospital:</strong> <span id="hospital-name"></span></p>
             <p><strong>Status:</strong> <span id="token-status"></span></p>
-            <p><strong>ETA:</strong> <span id="token-eta"></span></p>
-            <button id="refresh" class="button is-small">Refresh</button>
+            <p><strong>Estimated Wait:</strong> <span id="token-eta"></span> minutes</p>
+
+            <button id="refresh" class="button is-small is-info mt-2">
+                Refresh
+            </button>
         </div>
     </div>
 </div>
 
 <script>
     async function fetchMyToken() {
-        // Example: call an API endpoint that returns the authenticated user's active token
-        // You need to create endpoint or reuse Token list and filter by request.user on server.
-        const resp = await fetch('/api/token_queue/?patient__username={{ request.user.username }}', {
-            credentials: 'same-origin'
-        });
-        if (!resp.ok) { console.error('Failed to fetch'); return; }
-        const list = await resp.json();
-        if (list && list.length) {
-            const token = list[0];
-            document.getElementById('no-token').style.display = 'none';
-            document.getElementById('token-info').style.display = 'block';
-            document.getElementById('token-number').innerText = token.token_number;
-            document.getElementById('token-status').innerText = token.status;
-            // ETA may be provided; otherwise estimate from token_number
-            document.getElementById('token-eta').innerText = token.eta || 'Calculating...';
-        } else {
-            document.getElementById('no-token').style.display = 'block';
-            document.getElementById('token-info').style.display = 'none';
+        try {
+            const resp = await fetch("/api/tokens/patient/dashboard/", {
+                credentials: "same-origin"
+            });
+
+            if (!resp.ok) {
+                throw new Error("Failed to fetch dashboard data");
+            }
+
+            const data = await resp.json();
+
+            const noTokenEl = document.getElementById("no-token");
+            const tokenInfoEl = document.getElementById("token-info");
+
+            if (!data.has_active_token) {
+                noTokenEl.style.display = "block";
+                tokenInfoEl.style.display = "none";
+                return;
+            }
+
+            // Show token info
+            noTokenEl.style.display = "none";
+            tokenInfoEl.style.display = "block";
+
+            document.getElementById("token-number").innerText = data.token_number;
+            document.getElementById("doctor-name").innerText = data.doctor_name;
+            document.getElementById("hospital-name").innerText = data.hospital_name;
+            document.getElementById("token-status").innerText = data.status;
+            document.getElementById("token-eta").innerText = data.estimated_wait_minutes;
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById("no-token").innerText =
+                "Error loading token details.";
+            document.getElementById("no-token").style.display = "block";
+            document.getElementById("token-info").style.display = "none";
         }
     }
 
-    document.getElementById('refresh').addEventListener('click', fetchMyToken);
+    // Refresh button
+    document.getElementById("refresh").addEventListener("click", fetchMyToken);
+
+    // Initial load
     fetchMyToken();
 </script>
 {% endblock %}

@@ -26,6 +26,9 @@ from .serializers import (
 from .services import create_token, estimate_wait_for_token
 from .realtime import broadcast_queue_update
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
 
 # --------------------------------------------------
 # Token CRUD (Admin / Receptionist / Doctor)
@@ -392,3 +395,39 @@ class TokenPriorityAPIView(TokenActionBase):
         )
 
         return Response({"detail": "Token priority updated.", "priority": priority})
+    
+@login_required
+def patient_dashboard(request):
+    # Only patients allowed
+    if getattr(request.user, "role", None) != "patient":
+        return render(request, "patients/not_allowed.html")
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    # Get active token
+    token = Token.objects.filter(
+        patient=patient,
+        status__in=["waiting", "in_service"]
+    ).select_related("doctor", "hospital").first()
+
+    context = {
+        "has_token": False
+    }
+
+    if token:
+        minutes, eta_dt = estimate_wait_for_token(
+            token.doctor.id,
+            token.token_number
+        )
+
+        context.update({
+            "has_token": True,
+            "token_number": token.token_number,
+            "doctor_name": token.doctor.name,
+            "hospital_name": token.hospital.name,
+            "status": token.status.replace("_", " ").title(),
+            "estimated_wait": minutes,
+            "eta": timezone.localtime(eta_dt),
+        })
+
+    return render(request, "patients/home.html", context)
