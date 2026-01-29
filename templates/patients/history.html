@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Token History</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .status-completed {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-skipped {
+            color: red;
+            font-weight: bold;
+        }
+
+        .pagination {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .pagination a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #0d6efd;
+        }
+
+        .filter {
+            margin-bottom: 15px;
+        }
+
+        .filter input {
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>📜 Token History</h2>
+
+        <!-- Date Filter -->
+        <form method="get" class="filter">
+            Start Date:
+            <input type="date" name="start_date" value="{{ start_date }}">
+            End Date:
+            <input type="date" name="end_date" value="{{ end_date }}">
+            <button type="submit">Filter</button>
+        </form>
+
+        {% if page_obj %}
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Doctor</th>
+                <th>Token #</th>
+                <th>Status</th>
+            </tr>
+
+            {% for token in page_obj %}
+            <tr>
+                <td>{{ token.created_at|date:"d M Y, H:i" }}</td>
+                <td>{{ token.doctor.name }}</td>
+                <td>{{ token.token_number }}</td>
+                <td class="status-{{ token.status }}">
+                    {{ token.status|title }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}">⬅
+                Prev</a>
+            {% endif %}
+
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}">Next
+                ➡</a>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <p>No past tokens found.</p>
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

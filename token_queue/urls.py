@@ -12,7 +12,8 @@ from .views import (
     TokenCompleteAPIView,
     TokenSkipAPIView,
     TokenPriorityAPIView,
-    patient_dashboard
+    patient_dashboard,
+    patient_token_history
 )
 
 # Router for admin/receptionist/doctor CRUD in DRF UI
@@ -41,5 +42,7 @@ urlpatterns = [
     path("tokens/<int:pk>/complete/", TokenCompleteAPIView.as_view(), name="token-complete"),
     path("tokens/<int:pk>/skip/", TokenSkipAPIView.as_view(), name="token-skip"),
     path("tokens/<int:pk>/priority/", TokenPriorityAPIView.as_view(), name="token-priority"),
+    path("patient/history/", patient_token_history, name="patient-token-history"),
+
     
 ]

@@ -29,6 +29,9 @@ from .realtime import broadcast_queue_update
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.utils.dateparse import parse_date
 
 # --------------------------------------------------
 # Token CRUD (Admin / Receptionist / Doctor)
@@ -431,3 +434,38 @@ def patient_dashboard(request):
         })
 
     return render(request, "patients/home.html", context)
+
+@login_required
+def patient_token_history(request):
+    # Only patients allowed
+    if getattr(request.user, "role", None) != "patient":
+        return render(request, "patients/not_allowed.html")
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    tokens = Token.objects.filter(
+        patient=patient,
+        status__in=["completed", "skipped"]
+    ).select_related("doctor").order_by("-created_at")
+
+    # Optional date filter
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if start_date:
+        tokens = tokens.filter(created_at__date__gte=parse_date(start_date))
+    if end_date:
+        tokens = tokens.filter(created_at__date__lte=parse_date(end_date))
+
+    # Pagination (10 per page)
+    paginator = Paginator(tokens, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "start_date": start_date or "",
+        "end_date": end_date or "",
+    }
+
+    return render(request, "patients/history.html", context)
