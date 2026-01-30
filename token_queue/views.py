@@ -33,6 +33,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils.dateparse import parse_date
+from notifications.services import notify_user_async
+
 
 # --------------------------------------------------
 # Token CRUD (Admin / Receptionist / Doctor)
@@ -300,12 +302,15 @@ class TokenCallAPIView(TokenActionBase):
             token.called_at = timezone.now()
             token.save(update_fields=["status", "called_at", "updated_at"])
 
-            # 2️⃣ Notify CURRENT patient (token called)
+            # 2️⃣ Notify CURRENT patient (DB + async)
             if token.patient and token.patient.user:
-                create_notification(
-                    token.patient.user,
-                    f"Your token {token.token_number} has been called. Please proceed."
-                )
+                message = f"Your token {token.token_number} has been called. Please proceed."
+                
+                # In-app notification (DB)
+                create_notification(token.patient.user, message)
+
+                # Async SMS / Email (Celery)
+                notify_user_async(token.patient.user, message)
 
             # 3️⃣ Find NEXT waiting token
             next_token = Token.objects.filter(
@@ -313,12 +318,15 @@ class TokenCallAPIView(TokenActionBase):
                 status="waiting"
             ).order_by("token_number").first()
 
-            # 4️⃣ Notify NEXT patient (token coming next)
+            # 4️⃣ Notify NEXT patient (DB + async)
             if next_token and next_token.patient and next_token.patient.user:
-                create_notification(
-                    next_token.patient.user,
-                    f"Your token {next_token.token_number} is coming next."
-                )
+                message = f"Your token {next_token.token_number} is coming next."
+                
+                # In-app notification (DB)
+                create_notification(next_token.patient.user, message)
+
+                # Async SMS / Email (Celery)
+                notify_user_async(next_token.patient.user, message)
 
         # 5️⃣ Real-time WebSocket broadcast
         broadcast_queue_update(
