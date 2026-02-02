@@ -2,6 +2,12 @@
 from django.db import models
 from django.utils import timezone
 
+# ✅ NEW IMPORTS (QR SUPPORT)
+from django.core.files.base import ContentFile
+import qrcode
+import json
+from io import BytesIO
+
 from hospitals.models import Hospital
 from doctors.models import Doctor
 from patients.models import Patient
@@ -54,23 +60,66 @@ class Token(models.Model):
         default=0
     )
 
-    # ✅ FIX: add timestamps
+    # ✅ NEW FIELD — QR CODE IMAGE
+    qr_code = models.ImageField(
+        upload_to="token_qr/",
+        blank=True,
+        null=True
+    )
+
+    # timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # --------------------------------------------------
+    # QR GENERATION LOGIC
+    # --------------------------------------------------
+    def generate_qr(self):
+        """
+        Generates QR code containing token verification data
+        """
+        data = {
+            "token_id": self.id,
+            "hospital_id": self.hospital.id,
+            "doctor_id": self.doctor.id
+        }
+
+        qr = qrcode.make(json.dumps(data))
+        buffer = BytesIO()
+        qr.save(buffer, format="PNG")
+
+        filename = f"token_{self.id}.png"
+        self.qr_code.save(
+            filename,
+            ContentFile(buffer.getvalue()),
+            save=False
+        )
+
+    # --------------------------------------------------
+    # SAVE OVERRIDE
+    # --------------------------------------------------
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
+        # Token number generation (YOUR EXISTING LOGIC)
         if not self.token_number:
             last_token = Token.objects.filter(
                 doctor=self.doctor
-            ).order_by('-token_number').first()
+            ).order_by("-token_number").first()
 
             self.token_number = 1 if not last_token else last_token.token_number + 1
 
+        # First save (to get self.id)
         super().save(*args, **kwargs)
+
+        # Generate QR only once (after ID exists)
+        if is_new and not self.qr_code:
+            self.generate_qr()
+            super().save(update_fields=["qr_code"])
+
     class Meta:
         ordering = ["booked_at"]
         unique_together = ["doctor", "booked_at", "token_number"]
 
     def __str__(self):
-        return f"Token {self.token_number} - {self.doctor.name}"
-
+        return f"Token {self.token_number} - {self.doctor}"

@@ -431,6 +431,30 @@ class TokenPriorityAPIView(TokenActionBase):
 
         return Response({"detail": "Token priority updated.", "priority": priority})
     
+class VerifyTokenAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsReceptionist]
+
+    def get(self, request, token_id):
+        try:
+            token = Token.objects.get(id=token_id)
+        except Token.DoesNotExist:
+            return Response({"valid": False, "message": "Invalid token"}, status=404)
+
+        if token.status in ["completed", "skipped"]:
+            return Response({
+                "valid": False,
+                "message": "Token already used"
+            })
+
+        return Response({
+            "valid": True,
+            "token_id": token.id,
+            "patient": token.patient.name,
+            "doctor": token.doctor.name,
+            "status": token.status
+        })
+
+    
 @login_required
 def patient_dashboard(request):
     # Only patients allowed

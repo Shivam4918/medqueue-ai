@@ -31,6 +31,18 @@
             border-radius: 5px;
             text-decoration: none;
         }
+
+        .qr {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .qr img {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 6px;
+            background: #fff;
+        }
     </style>
 </head>
 
@@ -46,6 +58,18 @@
         <p><strong>Status:</strong> <span class="status">{{ status }}</span></p>
         <p><strong>Estimated Wait:</strong> {{ estimated_wait }} minutes</p>
         <p><strong>ETA:</strong> {{ eta }}</p>
+
+        <!-- ✅ QR CODE SECTION (ADDED HERE) -->
+        {% if active_token.qr_code %}
+        <div class="qr">
+            <h4>📱 Your Token QR</h4>
+            <img src="{{ active_token.qr_code.url }}" width="200" alt="Token QR Code">
+            <p style="font-size: 13px; color: #666;">
+                Show this QR at the hospital reception
+            </p>
+        </div>
+        {% endif %}
+
         {% else %}
         <p>You have no active token.</p>
         <a href="/api/token_queue/book/" class="cta">➕ Book Token</a>
