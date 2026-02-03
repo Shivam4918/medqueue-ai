@@ -2,37 +2,47 @@
 {% block title %}Walk-in Booking{% endblock %}
 
 {% block content %}
-<div class="box token-card">
-    <h2 class="title is-5">Walk-in Booking</h2>
+<div class="max-w-6xl mx-auto p-4">
 
-    <div class="field">
-        <label class="label">Doctor ID</label>
-        <div class="control">
-            <input id="doctor_id" class="input" type="number" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- LEFT: Form -->
+        <div class="box token-card">
+            <h2 class="title is-5 text-center">🧾 Walk-in Booking</h2>
+
+            <div class="field">
+                <label class="label">Doctor ID</label>
+                <input id="doctor_id" class="input py-3 text-lg" type="number">
+            </div>
+
+            <div class="field">
+                <label class="label">Patient Name</label>
+                <input id="patient_name" class="input py-3 text-lg" type="text">
+            </div>
+
+            <button id="book" class="w-full min-h-[44px] py-3 px-4
+                       text-lg font-semibold rounded-lg
+                       bg-green-600 hover:bg-green-700
+                       text-white">
+                ➕ Create Walk-in Token
+            </button>
         </div>
-    </div>
 
-    <div class="field">
-        <label class="label">Patient name</label>
-        <div class="control">
-            <input id="patient_name" class="input" type="text" />
+        <!-- RIGHT: Result -->
+        <div class="box token-card flex items-center justify-center">
+            <div id="out" class="text-lg text-center text-gray-700"></div>
         </div>
-    </div>
 
-    <div class="field">
-        <div class="control">
-            <button id="book" class="button is-primary">Create Walk-in Token</button>
-        </div>
     </div>
-
-    <div id="out" style="margin-top:10px;"></div>
 </div>
 
 <script>
-    document.getElementById('book').addEventListener('click', async () => {
-        const doctor_id = Number(document.getElementById('doctor_id').value);
-        const patient_name = document.getElementById('patient_name').value.trim();
-        if (!doctor_id || !patient_name) return alert('doctor and patient name required');
+    document.getElementById('book').onclick = async () => {
+        const doctor_id = Number(doctor_id.value);
+        const patient_name = patient_name.value.trim();
+
+        if (!doctor_id || !patient_name)
+            return alert('Doctor ID and patient name required');
 
         const resp = await fetch('/api/token_queue/walkin/', {
             method: 'POST',
@@ -41,12 +51,8 @@
             body: JSON.stringify({ doctor_id, patient_name })
         });
 
-        if (!resp.ok) {
-            const j = await resp.json().catch(() => ({ detail: 'Error' }));
-            return alert('Failed: ' + (j.detail || JSON.stringify(j)));
-        }
         const data = await resp.json();
-        document.getElementById('out').innerText = `Created token #${data.token_number} for ${data.patient_name}. ETA ${data.eta}`;
-    });
+        out.innerText = `✅ Token #${data.token_number} created\nETA: ${data.eta}`;
+    };
 </script>
 {% endblock %}

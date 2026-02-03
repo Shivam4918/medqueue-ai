@@ -8,6 +8,9 @@ from django.utils import timezone
 from hospitals.models import Hospital
 from doctors.models import Doctor
 
+from token_queue.models import Token
+from token_queue.services import estimate_wait_for_token
+from patients.services import get_or_create_patient_from_user
 
 class StaffRequiredMixin(UserPassesTestMixin):
     """
@@ -50,11 +53,36 @@ class HospitalDetailView(LoginRequiredMixin, StaffRequiredMixin, DetailView):
 
 @login_required
 def patient_token_page(request):
-    """
-    Simple patient page showing current token (uses JS fetch to call API).
-    URL example: /dashboard/patient/
-    """
-    return render(request, "dashboard/patient_token.html", {})
+    if getattr(request.user, "role", None) != "patient":
+        return render(request, "patients/not_allowed.html")
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    token = Token.objects.filter(
+        patient=patient,
+        status__in=["waiting", "in_service"]
+    ).select_related("doctor", "hospital").first()
+
+    context = {"has_token": False}
+
+    if token:
+        minutes, eta_dt = estimate_wait_for_token(
+            token.doctor.id,
+            token.token_number
+        )
+
+        context.update({
+            "has_token": True,
+            "active_token": token,
+            "token_number": token.token_number,
+            "doctor_name": token.doctor.name,
+            "hospital_name": token.hospital.name,
+            "status": token.status.replace("_", " ").title(),
+            "estimated_wait": minutes,
+            "eta": timezone.localtime(eta_dt),
+        })
+
+    return render(request, "patients/home.html", context)
 
 
 @login_required

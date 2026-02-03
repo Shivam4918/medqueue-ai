@@ -6,13 +6,16 @@
     <h2 class="title is-5">Your Current Token</h2>
 
     <div id="status-area">
+
         <!-- No token message -->
         <p id="no-token" style="display:none;">
             No active token found.
-            <br>
-            <a href="/dashboard/patient/" class="button is-link is-small mt-2">
-                Book Token
-            </a>
+            <br><br>
+
+            <!-- ✅ BOOK TOKEN BUTTON -->
+            <button id="book-token-btn" class="button is-link is-medium">
+                ➕ Book Token
+            </button>
         </p>
 
         <!-- Token info -->
@@ -52,7 +55,6 @@
                 return;
             }
 
-            // Show token info
             noTokenEl.style.display = "none";
             tokenInfoEl.style.display = "block";
 
@@ -72,7 +74,35 @@
     }
 
     // Refresh button
-    document.getElementById("refresh").addEventListener("click", fetchMyToken);
+    document.getElementById("refresh")?.addEventListener("click", fetchMyToken);
+
+    // ✅ Book token button
+    document.getElementById("book-token-btn")?.addEventListener("click", async () => {
+        try {
+            const resp = await fetch("/api/token_queue/book/", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    doctor: 1   // 🔴 TEMP: hardcoded doctor ID
+                })
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                alert(err.detail || "Booking failed");
+                return;
+            }
+
+            alert("✅ Token booked successfully");
+            fetchMyToken(); // reload dashboard
+
+        } catch (e) {
+            alert("Network error");
+        }
+    });
 
     // Initial load
     fetchMyToken();

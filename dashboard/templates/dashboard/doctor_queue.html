@@ -2,91 +2,129 @@
 {% block title %}Doctor Queue{% endblock %}
 
 {% block content %}
-<div class="box token-card">
-    <h2 class="title is-5">Doctor Queue Dashboard</h2>
+<div class="max-w-6xl mx-auto p-4">
 
-    <div class="field">
-        <label class="label">Doctor ID</label>
-        <div class="control">
-            <input id="doctor-id" class="input" type="number"
-                value="{% if request.user.doctor_profile %}{{ request.user.doctor_profile.id }}{% endif %}" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- LEFT: Controls -->
+        <div class="box token-card">
+            <h2 class="title is-5">Doctor Queue Dashboard</h2>
+
+            <div class="field">
+                <label class="label">Doctor ID</label>
+                <div class="control">
+                    <input id="doctor-id" class="input py-3 text-lg" type="number"
+                        value="{% if request.user.doctor_profile %}{{ request.user.doctor_profile.id }}{% endif %}" />
+                </div>
+            </div>
+
+            <button id="load-queue" class="w-full min-h-[44px] py-3 px-4
+                       text-lg font-semibold rounded-lg
+                       bg-blue-600 hover:bg-blue-700
+                       text-white">
+                🔄 Load Queue
+            </button>
         </div>
+
+        <!-- RIGHT: Queue Table -->
+        <div class="box token-card overflow-x-auto">
+            <table class="table is-fullwidth" id="queue-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Patient</th>
+                        <th>Status</th>
+                        <th style="width:260px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
     </div>
-
-    <div>
-        <button id="load-queue" class="button is-primary">Load Queue</button>
-    </div>
-
-    <hr>
-
-    <table class="table is-fullwidth" id="queue-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
 </div>
 
 <script>
     async function loadQueue() {
         const doctorId = document.getElementById('doctor-id').value;
-        if (!doctorId) { alert('Enter doctor id'); return; }
-        const resp = await fetch(`/api/token_queue/doctors/${doctorId}/queue/`, { credentials: 'same-origin' });
-        if (!resp.ok) { alert('Failed loading queue'); return; }
+        if (!doctorId) return alert('Enter doctor id');
+
+        const resp = await fetch(`/api/token_queue/doctors/${doctorId}/queue/`,
+            { credentials: 'same-origin' });
+
+        if (!resp.ok) return alert('Failed loading queue');
+
         const items = await resp.json();
         const tbody = document.querySelector('#queue-table tbody');
         tbody.innerHTML = '';
+
         items.forEach(t => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-      <td>${t.token_number}</td>
-      <td>${t.patient || t.patient_id}</td>
-      <td>${t.status}</td>
-      <td>
-        <button class="button is-small call" data-id="${t.id}">Call</button>
-        <button class="button is-small is-warning skip" data-id="${t.id}">Skip</button>
-        <button class="button is-small is-success complete" data-id="${t.id}">Complete</button>
-        <button class="button is-small is-danger pri" data-id="${t.id}">Priority</button>
-      </td>
-    `;
+              <td>${t.token_number}</td>
+              <td>${t.patient || t.patient_id}</td>
+              <td>${t.status}</td>
+              <td class="space-y-2">
+
+                <button class="w-full min-h-[44px] py-3 px-4
+                               text-lg font-semibold rounded-lg
+                               bg-green-600 text-white call"
+                        data-id="${t.id}">
+                  📣 Call
+                </button>
+
+                <button class="w-full min-h-[44px] py-3 px-4
+                               text-lg font-semibold rounded-lg
+                               bg-yellow-500 text-white skip"
+                        data-id="${t.id}">
+                  ⏭ Skip
+                </button>
+
+                <button class="w-full min-h-[44px] py-3 px-4
+                               text-lg font-semibold rounded-lg
+                               bg-blue-600 text-white complete"
+                        data-id="${t.id}">
+                  ✅ Complete
+                </button>
+
+                <button class="w-full min-h-[44px] py-3 px-4
+                               text-lg font-semibold rounded-lg
+                               bg-red-600 text-white pri"
+                        data-id="${t.id}">
+                  🚨 Priority
+                </button>
+
+              </td>
+            `;
             tbody.appendChild(tr);
         });
 
-        // actions
         document.querySelectorAll('.call').forEach(b => b.onclick = () => action(b.dataset.id, 'call'));
         document.querySelectorAll('.skip').forEach(b => b.onclick = () => action(b.dataset.id, 'skip'));
         document.querySelectorAll('.complete').forEach(b => b.onclick = () => action(b.dataset.id, 'complete'));
         document.querySelectorAll('.pri').forEach(b => b.onclick = () => setPriority(b.dataset.id));
     }
 
-    async function action(tokenId, act) {
-        const url = `/api/token_queue/tokens/${tokenId}/${act}/`;
-        const resp = await fetch(url, { method: 'POST', credentials: 'same-origin' });
-        if (!resp.ok) { alert('Action failed'); return; }
-        alert((await resp.json()).detail || 'OK');
+    async function action(id, act) {
+        await fetch(`/api/token_queue/tokens/${id}/${act}/`,
+            { method: 'POST', credentials: 'same-origin' });
         loadQueue();
     }
 
-    async function setPriority(tokenId) {
-        const p = prompt('Set priority: 0 (normal) or 1 (emergency)', '1');
+    async function setPriority(id) {
+        const p = prompt('Priority: 0 or 1', '1');
         if (p === null) return;
-        const url = `/api/token_queue/tokens/${tokenId}/priority/`;
-        const resp = await fetch(url, {
+
+        await fetch(`/api/token_queue/tokens/${id}/priority/`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ priority: Number(p) })
         });
-        if (!resp.ok) { alert('Priority change failed'); return; }
-        alert('Priority updated');
+
         loadQueue();
     }
 
-    document.getElementById('load-queue').addEventListener('click', loadQueue);
+    document.getElementById('load-queue').onclick = loadQueue;
 </script>
 {% endblock %}

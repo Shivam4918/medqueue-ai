@@ -1,81 +1,73 @@
-<!DOCTYPE html>
-<html>
+{% extends "dashboard/base.html" %}
+{% block title %}Patient Dashboard{% endblock %}
 
-<head>
-    <title>Patient Dashboard</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f8;
-        }
+{% block content %}
+<div class="min-h-screen bg-gray-100 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow p-6 space-y-6">
 
-        .card {
-            background: white;
-            padding: 20px;
-            max-width: 500px;
-            margin: 40px auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .status {
-            font-weight: bold;
-            color: #0d6efd;
-        }
-
-        .cta {
-            display: inline-block;
-            padding: 10px 16px;
-            background: #0d6efd;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        .qr {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .qr img {
-            border: 1px solid #ddd;
-            padding: 8px;
-            border-radius: 6px;
-            background: #fff;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="card">
-        <h2>👋 Welcome, Patient</h2>
+        <!-- App Title -->
+        <h1 class="text-2xl font-bold text-center text-blue-600">
+            🏥 MedQueue
+        </h1>
 
         {% if has_token %}
-        <p><strong>Token Number:</strong> {{ token_number }}</p>
-        <p><strong>Doctor:</strong> {{ doctor_name }}</p>
-        <p><strong>Hospital:</strong> {{ hospital_name }}</p>
-        <p><strong>Status:</strong> <span class="status">{{ status }}</span></p>
-        <p><strong>Estimated Wait:</strong> {{ estimated_wait }} minutes</p>
-        <p><strong>ETA:</strong> {{ eta }}</p>
 
-        <!-- ✅ QR CODE SECTION (ADDED HERE) -->
-        {% if active_token.qr_code %}
-        <div class="qr">
-            <h4>📱 Your Token QR</h4>
-            <img src="{{ active_token.qr_code.url }}" width="200" alt="Token QR Code">
-            <p style="font-size: 13px; color: #666;">
-                Show this QR at the hospital reception
+        <!-- Token Info -->
+        <div class="text-center space-y-2">
+            <p class="text-gray-500 text-sm">Your Token Number</p>
+
+            <div class="text-5xl font-bold text-green-600">
+                {{ token_number }}
+            </div>
+
+            <p class="text-sm text-gray-600">
+                {{ doctor_name }} · {{ hospital_name }}
+            </p>
+
+            <!-- Status Badge -->
+            <span class="inline-block px-4 py-1 rounded-full text-white text-sm
+          {% if status|lower == 'waiting' %} bg-yellow-500
+          {% elif status|lower == 'in service' %} bg-blue-500
+          {% else %} bg-gray-500 {% endif %}
+        ">
+                {{ status }}
+            </span>
+
+            <!-- ETA -->
+            <p class="text-lg font-semibold mt-4">
+                ⏳ Estimated wait:
+                <span class="text-blue-600">{{ estimated_wait }} mins</span>
+            </p>
+        </div>
+
+        <!-- QR Code -->
+        {% if active_token and active_token.qr_code %}
+        <div class="flex flex-col items-center mt-4 space-y-2">
+            <img src="{{ active_token.qr_code.url }}" alt="Token QR Code"
+                class="w-40 h-40 border rounded-lg p-2 bg-white">
+            <p class="text-xs text-gray-500 text-center">
+                Show this QR at hospital reception
             </p>
         </div>
         {% endif %}
 
         {% else %}
-        <p>You have no active token.</p>
-        <a href="/api/token_queue/book/" class="cta">➕ Book Token</a>
+
+        <!-- No Token State -->
+        <div class="text-center space-y-4">
+            <p class="text-gray-600">You have no active token.</p>
+
+            <a href="/api/token_queue/book/" class="block w-full min-h-[44px] py-3 px-4
+          text-lg font-semibold rounded-lg
+          bg-blue-600 hover:bg-blue-700
+          text-white transition">
+                ➕ Book Token
+            </a>
+
+        </div>
+
         {% endif %}
+
     </div>
-
-</body>
-
-</html>
+</div>
+{% endblock %}
