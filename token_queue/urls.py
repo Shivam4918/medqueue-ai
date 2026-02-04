@@ -14,7 +14,8 @@ from .views import (
     TokenPriorityAPIView,
     patient_dashboard,
     patient_token_history,
-    VerifyTokenAPIView
+    VerifyTokenAPIView,
+    DoctorDelayAPIView
 )
 
 # Router for admin/receptionist/doctor CRUD in DRF UI
@@ -36,6 +37,8 @@ urlpatterns = [
 
     # Doctor queue — active tokens (waiting + in_service)
     path("doctors/<int:doctor_id>/queue/", DoctorQueueAPIView.as_view(), name="doctor-queue"),
+    path("doctors/<int:doctor_id>/delay/", DoctorDelayAPIView.as_view()),
+
 
     # Token actions (call, complete, skip, priority)
     path("patient/home/", patient_dashboard, name="patient-dashboard"),

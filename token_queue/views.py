@@ -35,6 +35,15 @@ from django.db.models import Q
 from django.utils.dateparse import parse_date
 from notifications.services import notify_user_async
 
+from analytics.events import *
+# from analytics.events import (
+#     log_event,
+#     TOKEN_CREATED,
+#     TOKEN_CALLED,
+#     TOKEN_COMPLETED,
+#     TOKEN_SKIPPED,
+#     EMERGENCY_PRIORITY,
+# )
 
 # --------------------------------------------------
 # Token CRUD (Admin / Receptionist / Doctor)
@@ -301,6 +310,13 @@ class TokenCallAPIView(TokenActionBase):
             token.status = "in_service"
             token.called_at = timezone.now()
             token.save(update_fields=["status", "called_at", "updated_at"])
+            
+            log_event(
+                event=TOKEN_CALLED,
+                hospital_id=token.hospital.id,
+                doctor_id=token.doctor.id,
+                token_id=token.id,
+            )
 
             # 2️⃣ Notify CURRENT patient (DB + async)
             if token.patient and token.patient.user:
@@ -357,6 +373,13 @@ class TokenCompleteAPIView(TokenActionBase):
         token.status = "completed"
         token.save(update_fields=["status", "updated_at"])
 
+        log_event(
+            event=TOKEN_COMPLETED,
+            hospital_id=token.hospital.id,
+            doctor_id=token.doctor.id,
+            token_id=token.id,
+        )
+
         # 🔴 REAL-TIME BROADCAST (ADD HERE)
         broadcast_queue_update(
             token.doctor.id,
@@ -366,6 +389,7 @@ class TokenCompleteAPIView(TokenActionBase):
                 "status": token.status
             }
         )
+        
 
         return Response({"detail": "Token completed."})
 
@@ -382,6 +406,13 @@ class TokenSkipAPIView(TokenActionBase):
 
         token.status = "skipped"
         token.save(update_fields=["status", "updated_at"])
+
+        log_event(
+            event=TOKEN_SKIPPED,
+            hospital_id=token.hospital.id,
+            doctor_id=token.doctor.id,
+            token_id=token.id,
+        )
 
         # 🔴 REAL-TIME BROADCAST (ADD HERE)
         broadcast_queue_update(
@@ -419,6 +450,14 @@ class TokenPriorityAPIView(TokenActionBase):
         token.priority = priority
         token.save(update_fields=["priority", "updated_at"])
 
+        log_event(
+            event=EMERGENCY_PRIORITY,
+            hospital_id=token.hospital.id,
+            doctor_id=token.doctor.id,
+            token_id=token.id,
+            meta={"priority": token.priority},
+        )
+
         # 🔴 REAL-TIME BROADCAST (ADD HERE)
         broadcast_queue_update(
             token.doctor.id,
@@ -452,6 +491,40 @@ class VerifyTokenAPIView(APIView):
             "patient": token.patient.name,
             "doctor": token.doctor.name,
             "status": token.status
+        })
+
+class DoctorDelayAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    def post(self, request, doctor_id):
+        try:
+            delay_minutes = int(request.data.get("delay_minutes", 0))
+            reason = request.data.get("reason", "Not specified")
+        except ValueError:
+            return Response(
+                {"detail": "Invalid delay minutes"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"detail": "Doctor not found"}, status=404)
+
+        # 🔵 ANALYTICS LOG
+        log_event(
+            event=DOCTOR_DELAY,
+            hospital_id=doctor.hospital.id,
+            doctor_id=doctor.id,
+            meta={
+                "delay_minutes": delay_minutes,
+                "reason": reason,
+            },
+        )
+
+        return Response({
+            "detail": "Doctor delay logged",
+            "delay_minutes": delay_minutes
         })
 
     

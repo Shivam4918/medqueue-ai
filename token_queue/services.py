@@ -12,6 +12,15 @@ from doctors.models import Doctor
 from hospitals.models import Hospital
 from users.models import User
 
+from analytics.events import (
+    log_event,
+    TOKEN_CREATED,
+    TOKEN_CALLED,
+    TOKEN_COMPLETED,
+    TOKEN_SKIPPED,
+    EMERGENCY_PRIORITY,
+    DOCTOR_DELAY,
+)
 
 def _today_date():
     return timezone.localtime(timezone.now()).date()
@@ -56,7 +65,7 @@ def estimate_wait_for_token(doctor_id: int, token_number: int, avg_minutes_per_p
     return eta_minutes, eta_datetime
 
 
-def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, priority: int = 0) -> Token:
+def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, priority: int = 0, source: str = "online",) -> Token:
     if hospital is None:
         hospital = getattr(doctor, "hospital", None)
         if hospital is None:
@@ -71,9 +80,21 @@ def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, pr
         "token_number": next_number,
         "booked_at": now,
         "priority": priority,
+        "source": source,
     }
     if hasattr(Token, "booked_date"):
         kwargs["booked_date"] = _today_date()
 
     token = Token.objects.create(**kwargs)
+
+    log_event(
+        event=TOKEN_CREATED,
+        hospital_id=hospital.id,
+        doctor_id=doctor.id,
+        token_id=token.id,
+        meta={
+            "priority": priority,
+            "source": source,  # online / walkin
+        },
+    )
     return token
