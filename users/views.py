@@ -136,3 +136,22 @@ def mark_notifications_read(request):
         is_read=False
     ).update(is_read=True)
     return redirect("notifications")
+
+
+@login_required
+def role_redirect(request):
+    user = request.user
+
+    if user.is_superuser:
+        return redirect("/dashboard/")
+
+    if hasattr(user, "doctor_profile"):
+        return redirect("/dashboard/doctor/")
+
+    if hasattr(user, "receptionist_profile"):
+        return redirect("/dashboard/receptionist/")
+
+    if hasattr(user, "patient_profile"):
+        return redirect("/dashboard/patient/")
+
+    return redirect("/accounts/logout/")

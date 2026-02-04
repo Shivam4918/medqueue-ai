@@ -4,6 +4,7 @@ from .views import (
     VerifyOTPView,
     notification_list,
     mark_notifications_read,
+    role_redirect,
 )
 
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
 
     path("notifications/", notification_list, name="notifications"),
     path("notifications/read/", mark_notifications_read, name="notifications-read"),
+    path("redirect/", role_redirect, name="role-redirect")
 ]

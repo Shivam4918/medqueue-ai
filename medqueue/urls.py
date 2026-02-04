@@ -58,7 +58,8 @@ urlpatterns = [
     path("api/core/", include("core.urls")), 
     path("dashboard/", include("dashboard.urls")),
     path("manifest.json", manifest, name="manifest"),
-
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("users/", include("users.urls")),
 
     # or combine in single api router
 ]

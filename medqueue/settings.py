@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'api',
     'dashboard',
     "notifications",
+    "analytics",
 ]
 
 
@@ -184,9 +185,10 @@ AUTH_USER_MODEL = "users.User"
 
 # -------------- Dashboard / Auth convenience settings --------------
 # Templates DIRS already set above; add login/logout redirects used by dashboard
-LOGIN_URL = "/dashboard/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/dashboard/login/"
+LOGIN_REDIRECT_URL = "/users/redirect/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"
+LOGIN_URL = "/accounts/login/"
+
 
 # Optional: static files dir for local assets (uncomment if you create a top-level `static` folder)
 # STATICFILES_DIRS = [ BASE_DIR / "static" ]
