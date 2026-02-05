@@ -185,7 +185,7 @@ AUTH_USER_MODEL = "users.User"
 
 # -------------- Dashboard / Auth convenience settings --------------
 # Templates DIRS already set above; add login/logout redirects used by dashboard
-LOGIN_REDIRECT_URL = "/users/redirect/"
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 LOGIN_URL = "/accounts/login/"
 

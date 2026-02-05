@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+
+<div class="p-6 max-w-7xl mx-auto">
+
+    <h1 class="text-3xl font-bold mb-6">
+        Hospital Analytics Dashboard
+    </h1>
+
+    <canvas id="opdChart"></canvas>
+
+</div>
+
+<!-- ✅ Embed Django data safely -->
+<script id="chart-labels" type="application/json">
+    {{ chart_labels|json_script:"labels-data" }}
+</script>
+
+<script id="chart-values" type="application/json">
+    {{ chart_values|json_script:"values-data" }}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const labels = JSON.parse(
+        document.getElementById("labels-data").textContent
+    );
+
+    const values = JSON.parse(
+        document.getElementById("values-data").textContent
+    );
+
+    const ctx = document.getElementById("opdChart");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Patients",
+                data: values,
+                backgroundColor: "#2563eb"
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

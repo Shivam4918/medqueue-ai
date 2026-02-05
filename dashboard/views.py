@@ -12,6 +12,14 @@ from token_queue.models import Token
 from token_queue.services import estimate_wait_for_token
 from patients.services import get_or_create_patient_from_user
 
+from analytics.reports import (
+    total_patients_today,
+    tokens_per_doctor,
+    peak_opd_hours,
+    average_wait_time_minutes,
+    no_show_rate,
+)
+
 class StaffRequiredMixin(UserPassesTestMixin):
     """
     Allow only staff users (is_staff or is_superuser).
@@ -145,5 +153,41 @@ def doctor_dashboard(request):
         request,
         "dashboard/doctor_dashboard.html",
         {"doctor": doctor}
+    )
+
+@login_required
+def hospital_analytics_dashboard(request, hospital_id):
+    # 🔒 Access control
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect("dashboard:login")
+
+    # MongoDB analytics
+    total_patients = total_patients_today(hospital_id)
+    avg_wait = average_wait_time_minutes(hospital_id)
+    peak_hours = peak_opd_hours(hospital_id)
+    no_show = no_show_rate(hospital_id)
+    doctor_tokens = tokens_per_doctor(hospital_id)
+
+    # Prepare chart data
+    chart_labels = [str(row["_id"]) for row in peak_hours]
+    chart_values = [row["count"] for row in peak_hours]
+
+    context = {
+        "total_patients": total_patients,
+        "avg_wait": avg_wait,
+        "peak_hour": chart_labels[0] if chart_labels else "N/A",
+        "no_show_rate": no_show,
+        "doctor_stats": [
+            {"doctor": row["_id"], "total": row["total_tokens"]}
+            for row in doctor_tokens
+        ],
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+    }
+
+    return render(
+        request,
+        "hospitals/admin_dashboard.html",
+        context
     )
 

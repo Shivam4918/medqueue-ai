@@ -34,9 +34,25 @@
                 </div>
                 <div class="level-right">
                     {% if request.user.is_authenticated %}
-                    <div>Welcome, {{ request.user.username }} — <a href="/admin/">Admin</a></div>
+                    <div class="is-flex is-align-items-center">
+                        <span class="mr-3">
+                            Welcome, {{ request.user.username }}
+                        </span>
+
+                        <a href="/admin/" class="mr-3">
+                            Admin
+                        </a>
+
+                        <form method="post" action="/accounts/logout/" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="button is-small is-danger is-light">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
                 </div>
+
             </div>
 
             {% block content %}{% endblock %}

@@ -5,6 +5,9 @@ from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LogoutView
+
 
 
 def manifest(request):
@@ -49,6 +52,8 @@ def home(request):
 urlpatterns = [
     path("", home, name="home"),
     path('admin/', admin.site.urls),
+    path("accounts/login/", auth_views.LoginView.as_view(), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("dashboard/", include("dashboard.urls")), 
     path("api/token_queue/", include("token_queue.urls")),
     path('api/auth/', include('users.urls')),
@@ -56,11 +61,13 @@ urlpatterns = [
     path('api/hospitals/', include('hospitals.urls')), 
     path("api/doctors/", include("doctors.urls")), 
     path("api/core/", include("core.urls")), 
-    path("dashboard/", include("dashboard.urls")),
     path("manifest.json", manifest, name="manifest"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("users/", include("users.urls")),
-
+    path("analytics/", include("analytics.urls")),
+    
+    path("logout/", LogoutView.as_view(), name="logout"),
+    
     # or combine in single api router
 ]
 

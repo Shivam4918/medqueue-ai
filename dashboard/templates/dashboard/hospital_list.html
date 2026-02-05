@@ -13,7 +13,14 @@
             <h2 class="text-xl font-semibold">MedQueue — Admin Dashboard</h2>
             <div>
                 <a href="{% url 'admin:index' %}" class="mr-4 text-sm text-gray-600">Django Admin</a>
-                <a href="{% url 'dashboard:logout' %}" class="text-sm text-red-600">Logout</a>
+                <!-- <a href="{% url 'dashboard:logout' %}" class="text-sm text-red-600">Logout</a> -->
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm text-red-600">
+                        Logout
+                    </button>
+                </form>
+
             </div>
         </div>
     </header>
