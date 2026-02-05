@@ -2,6 +2,14 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from users.permissions import IsHospitalAdmin
 from django.core.exceptions import PermissionDenied
+from django.utils.dateparse import parse_date
+from django.http import HttpResponse
+from datetime import datetime
+from hospitals.models import Hospital
+from doctors.models import Doctor
+
+from .reports_export import fetch_events, export_csv, export_pdf
+
 
 from .reports import (
     total_patients_today,
@@ -61,3 +69,40 @@ def hospital_admin_dashboard(request):
         "hospitals/admin_dashboard.html",
         context
     )
+
+@login_required
+def export_reports(request):
+    user = request.user
+
+    if not user.is_superuser and user.role != "hospital_admin":
+        raise PermissionDenied
+
+    try:
+        doctor = Doctor.objects.get(user=request.user)
+        hospital = doctor.hospital
+    except Doctor.DoesNotExist:
+        return HttpResponse("Doctor profile not found", status=403)
+    except Hospital.DoesNotExist:
+        return HttpResponse("Hospital not found", status=403)
+
+
+    start = parse_date(request.GET.get("start"))
+    end = parse_date(request.GET.get("end"))
+    doctor_id = request.GET.get("doctor")
+    fmt = request.GET.get("format", "csv")
+
+    if not start or not end:
+        return HttpResponse("Invalid date range", status=400)
+
+    events = fetch_events(
+        hospital_id=hospital.id,
+        start_date=datetime.combine(start, datetime.min.time()),
+        end_date=datetime.combine(end, datetime.max.time()),
+        doctor_id=int(doctor_id) if doctor_id else None,
+    )
+
+    if fmt == "pdf":
+        return export_pdf(events, "OPD Analytics Report")
+
+    return export_csv(events, "opd_report")
+

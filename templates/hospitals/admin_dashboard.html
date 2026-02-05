@@ -3,15 +3,30 @@
 
 <div class="p-6 max-w-7xl mx-auto">
 
-    <h1 class="text-3xl font-bold mb-6">
+    <!-- Title -->
+    <h1 class="text-3xl font-bold mb-4">
         Hospital Analytics Dashboard
     </h1>
 
+    <!-- ✅ EXPORT BUTTONS (ADD HERE) -->
+    <div class="flex gap-4 mb-6">
+        <a href="/analytics/export/?start=2026-02-01&end=2026-02-03&format=csv"
+            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            Export CSV
+        </a>
+
+        <a href="/analytics/export/?start=2026-02-01&end=2026-02-03&format=pdf"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+            Export PDF
+        </a>
+    </div>
+
+    <!-- Chart -->
     <canvas id="opdChart"></canvas>
 
 </div>
 
-<!-- ✅ Embed Django data safely -->
+<!-- ✅ Django → JS safe data -->
 <script id="chart-labels" type="application/json">
     {{ chart_labels|json_script:"labels-data" }}
 </script>
