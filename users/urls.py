@@ -7,7 +7,8 @@ from .views import (
     portal_login,
     patient_register,
     verify_email_otp,
-    check_user_exists
+    check_user_exists,
+    resend_otp
 )
 
 app_name = "users"
@@ -18,6 +19,8 @@ urlpatterns = [
     # ======================
     path("send-otp/", SendOTPView.as_view(), name="send-otp"),
     path("verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
+    path("resend-otp/", resend_otp, name="resend_otp"),
+
     path("patient/verify-otp/", verify_email_otp, name="verify_email_otp"),
 
 

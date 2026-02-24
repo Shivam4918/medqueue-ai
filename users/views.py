@@ -3,7 +3,7 @@ import random, re
 from django.conf import settings
 from email.mime.image import MIMEImage
 import os
-
+import time
 from .models import User
 from patients.models import Patient
 from django.http import JsonResponse
@@ -34,6 +34,7 @@ from django.core.exceptions import ValidationError
 from .models import EmailOTP
 from django.contrib.auth.hashers import make_password
 
+from django.views.decorators.http import require_GET
 
 
 
@@ -266,36 +267,19 @@ def patient_register(request):
             return redirect("users:patient_register")
 
         # ==============================
-        # CREATE USER (INACTIVE)
+        # STORE REGISTRATION DATA IN SESSION
         # ==============================
-        user = User.objects.create(
-            username=email,  # internal use
-            email=email,
-            phone=phone,
-            first_name=name,
-            role="patient",
-            is_active=False,
-            password=make_password(password1),
-        )
 
-        Patient.objects.create(
-            user=user,
-            name=name,
-            phone=phone
-        )
-
-        # ==============================
-        # SEND OTP
-        # ==============================
         otp = get_random_string(6, allowed_chars="0123456789")
 
-        EmailOTP.objects.create(
-            user=user,
-            otp=otp
-        )
-
-        request.session["verify_user_id"] = user.id
-
+        request.session["registration_data"] = {
+            "name": name,
+            "phone": phone,
+            "email": email,
+            "password": make_password(password1),
+            "otp": otp,
+            "otp_created": time.time()
+        }
 
         # ==============================
         # SEND PROFESSIONAL OTP EMAIL
@@ -308,7 +292,7 @@ def patient_register(request):
         html_content = render_to_string(
             "emails/verify_email.html",
             {
-                "user": user,
+                "name": name,
                 "otp": otp
             }
         )
@@ -351,37 +335,107 @@ def check_user_exists(request):
     return JsonResponse(response)
 
 def verify_email_otp(request):
-    user_id = request.session.get("verify_user_id")
 
-    if not user_id:
-        return redirect("/")
+    registration_data = request.session.get("registration_data")
 
-    user = User.objects.get(id=user_id)
+    if not registration_data:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect("users:patient_register")
+
+    otp_created = registration_data.get("otp_created", 0)
+    expiry_seconds = 120
+    remaining_time = int(expiry_seconds - (time.time() - otp_created))
+
+    # If expired before POST
+    if remaining_time <= 0:
+        remaining_time = 0
 
     if request.method == "POST":
-        entered_otp = request.POST.get("otp")
 
-        otp_obj = EmailOTP.objects.filter(user=user, is_used=False).latest("created_at")
+        entered_otp = request.POST.get("otp", "").strip()
 
-        if otp_obj.is_expired():
-            messages.error(request, "OTP expired.")
-            return redirect("users:verify_email_otp")
+        if not entered_otp:
+            messages.error(request, "Please enter the OTP.")
+            return render(request, "users/verify_otp.html", {
+                "remaining_time": remaining_time
+            })
 
-        if otp_obj.otp != entered_otp:
+        if remaining_time <= 0:
+            messages.error(request, "OTP expired. Please resend OTP.")
+            return render(request, "users/verify_otp.html", {
+                "remaining_time": 0
+            })
+
+        if entered_otp != registration_data["otp"]:
             messages.error(request, "Invalid OTP.")
-            return redirect("users:verify_email_otp")
+            return render(request, "users/verify_otp.html", {
+                "remaining_time": remaining_time
+            })
 
-        otp_obj.is_used = True
-        otp_obj.save()
+        # SUCCESS
+        user = User.objects.create(
+            username=registration_data["email"],
+            email=registration_data["email"],
+            phone=registration_data["phone"],
+            first_name=registration_data["name"],
+            role="patient",
+            is_active=True,
+            password=registration_data["password"],
+        )
 
-        user.is_active = True
-        user.save()
+        Patient.objects.create(
+            user=user,
+            name=registration_data["name"],
+            phone=registration_data["phone"]
+        )
+
+        del request.session["registration_data"]
 
         login(request, user)
         return render(request, "users/success.html")
 
-    return render(request, "users/verify_otp.html")
+    return render(request, "users/verify_otp.html", {
+        "remaining_time": remaining_time
+    })
 
+
+@require_GET
+def resend_otp(request):
+
+    registration_data = request.session.get("registration_data")
+
+    if not registration_data:
+        return redirect("users:patient_register")
+
+    otp = get_random_string(6, allowed_chars="0123456789")
+
+    registration_data["otp"] = otp
+    registration_data["otp_created"] = time.time()
+
+    request.session["registration_data"] = registration_data
+
+    # ✅ IMPORTANT: pass name explicitly
+    html_content = render_to_string(
+        "emails/verify_email.html",
+        {
+            "name": registration_data["name"],
+            "otp": otp
+        }
+    )
+
+    text_content = strip_tags(html_content)
+
+    email = EmailMultiAlternatives(
+        subject="Verify Your Email | MedQueue AI",
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[registration_data["email"]],
+    )
+
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+
+    return redirect("users:verify_email_otp")
 
 # =========================================================
 # NOTIFICATIONS

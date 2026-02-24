@@ -73,6 +73,38 @@
                 transform: rotate(360deg);
             }
         }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E5E7EB;
+            border-top: 4px solid #0F766E;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Fade animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
     </style>
 </head>
 
@@ -295,6 +327,28 @@
 
         </div>
     </div>
+    <!-- Full Screen Production Loader -->
+    <div id="pageLoader"
+        class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center hidden z-50 transition-opacity duration-300">
+
+        <div class="bg-white/90 backdrop-blur-xl px-10 py-8 rounded-3xl shadow-2xl text-center animate-fadeIn">
+
+            <div class="relative w-16 h-16 mx-auto mb-5">
+                <div class="absolute inset-0 rounded-full border-4 border-teal-200"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-[#0F766E] animate-spin">
+                </div>
+            </div>
+
+            <h3 class="text-base font-semibold text-gray-800 mb-1">
+                Creating Your Account
+            </h3>
+
+            <p class="text-sm text-gray-500">
+                Please wait while we prepare your secure profile...
+            </p>
+
+        </div>
+    </div>
 
     <script>
 
@@ -304,6 +358,10 @@
         const passwordInput = document.getElementById("password");
         const confirmInput = document.getElementById("confirmPassword");
         const strengthBar = document.getElementById("strengthBar");
+
+        const form = document.getElementById("registerForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const loader = document.getElementById("pageLoader");
 
         function setError(input, msgEl, message) {
             input.classList.add("input-error");
@@ -481,14 +539,27 @@
             }
         });
 
-        const submitBtn = document.getElementById("submitBtn");
-
+        // const submitBtn = document.getElementById("submitBtn");
         function updateSubmitState() {
             const hasErrors = document.querySelectorAll(".input-error").length > 0;
             submitBtn.disabled = hasErrors;
         }
 
+        form.addEventListener("submit", function () {
+
+            // Prevent double click
+            submitBtn.disabled = true;
+
+            // Change button text
+            submitBtn.innerText = "Processing...";
+
+            // Show loader
+            loader.classList.remove("hidden");
+        });
+
     </script>
+
+
 
 </body>
 
