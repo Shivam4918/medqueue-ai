@@ -151,8 +151,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Email settings for OTP system
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@medqueue.ai"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# DEFAULT_FROM_EMAIL = "noreply@medqueue.ai"
 
 
 # Internationalization
@@ -185,9 +185,15 @@ AUTH_USER_MODEL = "users.User"
 
 # -------------- Dashboard / Auth convenience settings --------------
 # Templates DIRS already set above; add login/logout redirects used by dashboard
+LOGIN_URL = "/auth/patient/login/"
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
-LOGIN_URL = "/accounts/login/"
+LOGOUT_REDIRECT_URL = "/"
+
+# ==============================
+# MEDIA FILES (QR Images)
+# ==============================
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 # Optional: static files dir for local assets (uncomment if you create a top-level `static` folder)
@@ -218,4 +224,17 @@ CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+
+# ==============================
+# EMAIL CONFIGURATION (FROM .env)
+# ==============================
+
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
 

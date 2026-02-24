@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Portal | MedQueue AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-[#F9FAFB] text-gray-800">
+
+    <!-- NAVBAR -->
+    <header class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-[#1E3A8A]">
+                MedQueue AI
+            </h1>
+
+            <a href="/" class="text-sm text-gray-600 hover:text-[#1E3A8A] transition">
+                ← Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <section class="py-16 text-center bg-gradient-to-br from-[#E0F2FE] to-[#ECFDF5]">
+        <h2 class="text-4xl font-extrabold text-[#1E3A8A] mb-4">
+            Staff Login Portal
+        </h2>
+        <p class="text-gray-600 text-lg">
+            Secure access for hospital administrators, doctors, and staff.
+        </p>
+    </section>
+
+    <!-- ROLE CARDS -->
+    <section class="py-20">
+        <div class="max-w-6xl mx-auto px-6">
+
+            <div class="grid md:grid-cols-4 gap-8">
+
+                <!-- Hospital Admin -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition text-center border border-[#F3F4F6]">
+                    <h3 class="text-lg font-semibold text-[#1E3A8A] mb-3">
+                        Hospital Admin
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-6">
+                        Manage doctors, staff, and analytics.
+                    </p>
+                    <a href="/users/hospital/login/"
+                        class="block px-6 py-3 bg-[#1E3A8A] text-white rounded-xl hover:bg-blue-900 transition shadow">
+                        Login
+                    </a>
+                </div>
+
+                <!-- Doctor -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition text-center border border-[#F3F4F6]">
+                    <h3 class="text-lg font-semibold text-[#0F766E] mb-3">
+                        Doctor
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-6">
+                        Manage live OPD queue & patients.
+                    </p>
+                    <a href="/users/doctor/login/"
+                        class="block px-6 py-3 bg-[#16A34A] text-white rounded-xl hover:bg-green-700 transition shadow">
+                        Login
+                    </a>
+                </div>
+
+                <!-- Receptionist -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition text-center border border-[#F3F4F6]">
+                    <h3 class="text-lg font-semibold text-[#0F766E] mb-3">
+                        Receptionist
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-6">
+                        Handle walk-ins & token flow.
+                    </p>
+                    <a href="/users/receptionist/login/"
+                        class="block px-6 py-3 bg-[#F97316] text-white rounded-xl hover:bg-orange-600 transition shadow">
+                        Login
+                    </a>
+                </div>
+
+                <!-- Super Admin -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition text-center border border-[#F3F4F6]">
+                    <h3 class="text-lg font-semibold text-[#DC2626] mb-3">
+                        Super Admin
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-6">
+                        Platform-level management.
+                    </p>
+                    <a href="/admin/"
+                        class="block px-6 py-3 bg-[#DC2626] text-white rounded-xl hover:bg-red-700 transition shadow">
+                        Login
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECURITY NOTE -->
+    <section class="py-12 text-center text-sm text-gray-500">
+        Staff accounts are created internally by authorized administrators.
+        If you are a hospital looking to onboard, please contact the MedQueue AI platform team.
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#1E3A8A] text-gray-200 py-6 text-center text-sm">
+        © 2026 MedQueue AI — Secure Staff Access
+    </footer>
+
+</body>
+
+</html>

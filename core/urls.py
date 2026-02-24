@@ -1,6 +1,8 @@
-# core/urls.py
 from django.urls import path
+from .views import public_home
+
+app_name = "core"
 
 urlpatterns = [
-    # Core-level URLs only
+    path("", public_home, name="home"),
 ]

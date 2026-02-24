@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MedQueue AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.01em;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            letter-spacing: -0.025em;
+        }
+
+        p {
+            line-height: 1.75;
+        }
+
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-up.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body class="bg-[#F9FAFB] text-gray-800">
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <h1 class="text-2xl font-extrabold tracking-tight text-[#1E3A8A]">
+                MedQueue AI
+            </h1>
+
+            <nav class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
+                <a href="#features" class="hover:text-[#1E3A8A] transition">Features</a>
+                <a href="#how" class="hover:text-[#1E3A8A] transition">How It Works</a>
+                <a href="#hospitals" class="hover:text-[#1E3A8A] transition">For Hospitals</a>
+            </nav>
+
+            <div class="space-x-3">
+                <a href="/users/patient/login/"
+                    class="px-4 py-2 border border-[#1E3A8A] text-[#1E3A8A] rounded-lg hover:bg-[#E0F2FE] transition font-medium">
+                    Patient Login
+                </a>
+
+                <a href="/portal/"
+                    class="px-5 py-2 bg-[#0F766E] text-white rounded-lg hover:bg-[#115E59] transition shadow-md font-semibold">
+                    Staff Portal
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= HERO ================= -->
+    <section class="py-20 bg-gradient-to-br from-[#E0F2FE] to-[#ECFDF5] text-center fade-up">
+        <div class="max-w-5xl mx-auto px-6">
+
+            <span
+                class="inline-block px-4 py-1 mb-8 text-sm font-medium bg-white text-[#1E3A8A] rounded-full shadow tracking-wide">
+                AI-Powered Queue Management 🇮🇳
+            </span>
+
+            <h2 class="text-5xl md:text-7xl font-extrabold leading-[1.05] tracking-tight mb-10">
+                <span class="bg-gradient-to-r from-[#1E3A8A] via-[#0F766E] to-[#1E3A8A] bg-clip-text text-transparent">
+                    Skip the chaos.
+                </span>
+                <span class="block text-gray-800 mt-3">
+                    Book your OPD token
+                </span>
+                <span class="block font-semibold text-gray-700 mt-2">
+                    from anywhere.
+                </span>
+            </h2>
+
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-14 font-medium">
+                Real-time queue visibility, AI-powered wait predictions,
+                and seamless digital token management for modern hospitals.
+            </p>
+
+            <div class="flex justify-center gap-4 flex-wrap">
+                <a href="{% url 'users:patient_register' %}"
+                    class="px-8 py-4 bg-[#1E3A8A] text-white rounded-xl text-lg font-semibold shadow-lg hover:bg-blue-900 transition">
+                    Create Account →
+                </a>
+
+                <a href="/users/patient/login/"
+                    class="px-8 py-4 border border-gray-300 rounded-xl text-lg font-medium hover:bg-gray-100 transition">
+                    Patient Login
+                </a>
+            </div>
+
+            <!-- STATS -->
+            <div class="grid md:grid-cols-3 gap-8 mt-24">
+                <div class="bg-white p-10 rounded-2xl shadow">
+                    <h3 class="text-5xl font-extrabold tracking-tight text-[#1E3A8A] counter" data-target="2400">0</h3>
+                    <p class="text-gray-500 mt-4 text-xs uppercase tracking-widest font-semibold">
+                        Hospitals Onboarded
+                    </p>
+                </div>
+                <div class="bg-white p-10 rounded-2xl shadow">
+                    <h3 class="text-5xl font-extrabold tracking-tight text-[#16A34A] counter" data-target="18">0</h3>
+                    <p class="text-gray-500 mt-4 text-xs uppercase tracking-widest font-semibold">
+                        Avg Wait Reduced
+                    </p>
+                </div>
+                <div class="bg-white p-10 rounded-2xl shadow">
+                    <h3 class="text-5xl font-extrabold tracking-tight text-[#F97316] counter" data-target="5000000">0
+                    </h3>
+                    <p class="text-gray-500 mt-4 text-xs uppercase tracking-widest font-semibold">
+                        Tokens Processed
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FEATURES ================= -->
+    <section id="features" class="py-28 bg-[#F3F4F6] text-center fade-up">
+        <div class="max-w-6xl mx-auto px-6">
+
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-[#1E3A8A] mb-8">
+                Everything needed for smarter OPD management
+            </h2>
+
+            <p class="text-gray-500 text-lg mb-20 max-w-2xl mx-auto">
+                Built for patients and hospitals — powered by real-time analytics.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-10">
+
+                <div class="bg-white p-10 rounded-2xl shadow hover:shadow-lg transition">
+                    <h3 class="font-semibold text-xl tracking-tight mb-4 text-[#0F766E]">
+                        Digital Token Booking
+                    </h3>
+                    <p class="text-gray-600 text-base">
+                        Book OPD tokens online without standing in long queues.
+                    </p>
+                </div>
+
+                <div class="bg-white p-10 rounded-2xl shadow hover:shadow-lg transition">
+                    <h3 class="font-semibold text-xl tracking-tight mb-4 text-[#0F766E]">
+                        Live Queue Tracking
+                    </h3>
+                    <p class="text-gray-600 text-base">
+                        Monitor real-time queue updates and expected wait time.
+                    </p>
+                </div>
+
+                <div class="bg-white p-10 rounded-2xl shadow hover:shadow-lg transition">
+                    <h3 class="font-semibold text-xl tracking-tight mb-4 text-[#0F766E]">
+                        AI Wait Predictions
+                    </h3>
+                    <p class="text-gray-600 text-base">
+                        Machine learning predicts consultation delays accurately.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= HOW IT WORKS ================= -->
+    <section id="how" class="py-28 text-center bg-white fade-up">
+        <div class="max-w-6xl mx-auto px-6">
+
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-[#1E3A8A] mb-20">
+                Four simple steps to skip the queue
+            </h2>
+
+            <div class="grid md:grid-cols-4 gap-12">
+                <div>
+                    <div class="text-[#0F766E] font-extrabold text-3xl mb-5 tracking-tight">01</div>
+                    <h3 class="font-semibold text-lg tracking-tight mb-2">Find Hospital</h3>
+                    <p class="text-gray-500 text-sm">Search hospitals & view live queue.</p>
+                </div>
+
+                <div>
+                    <div class="text-[#0F766E] font-extrabold text-3xl mb-5 tracking-tight">02</div>
+                    <h3 class="font-semibold text-lg tracking-tight mb-2">Book Token</h3>
+                    <p class="text-gray-500 text-sm">Choose doctor & receive digital token.</p>
+                </div>
+
+                <div>
+                    <div class="text-[#0F766E] font-extrabold text-3xl mb-5 tracking-tight">03</div>
+                    <h3 class="font-semibold text-lg tracking-tight mb-2">Get Notified</h3>
+                    <p class="text-gray-500 text-sm">Receive alerts before your turn.</p>
+                </div>
+
+                <div>
+                    <div class="text-[#0F766E] font-extrabold text-3xl mb-5 tracking-tight">04</div>
+                    <h3 class="font-semibold text-lg tracking-tight mb-2">Visit & Done</h3>
+                    <p class="text-gray-500 text-sm">Arrive on time & avoid long waits.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FOR HOSPITALS ================= -->
+    <section id="hospitals" class="py-28 bg-[#ECFDF5] text-center fade-up">
+        <div class="max-w-4xl mx-auto px-6">
+
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-[#1E3A8A] mb-8">
+                Built for Hospitals
+            </h2>
+
+            <p class="text-gray-600 text-lg mb-14 max-w-2xl mx-auto">
+                Secure dashboards for administrators, doctors, and reception staff
+                to manage OPD flow, token queues, and analytics efficiently.
+            </p>
+
+            <a href="/portal/"
+                class="px-8 py-4 bg-[#0F766E] text-white rounded-xl font-semibold hover:bg-[#115E59] transition shadow-md">
+                Staff Portal →
+            </a>
+        </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-[#1E3A8A] text-gray-200 py-14 text-center text-sm tracking-wide font-medium">
+        © 2026 MedQueue AI — Built for India's Healthcare System
+    </footer>
+
+</body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const elements = document.querySelectorAll(".fade-up");
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("show");
+                }
+            });
+        }, { threshold: 0.15 });
+
+        elements.forEach(el => observer.observe(el));
+    });
+
+    const counters = document.querySelectorAll('.counter');
+
+    counters.forEach(counter => {
+        const updateCount = () => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const increment = target / 100;
+
+            if (count < target) {
+                counter.innerText = Math.ceil(count + increment);
+                setTimeout(updateCount, 20);
+            } else {
+                if (target >= 1000000) {
+                    counter.innerText = "5M+";
+                } else if (target >= 1000) {
+                    counter.innerText = "2,400+";
+                } else {
+                    counter.innerText = target + (target === 18 ? " min" : "+");
+                }
+            }
+        };
+
+        updateCount();
+    });
+</script>
+
+
+</html>

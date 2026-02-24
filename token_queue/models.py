@@ -19,6 +19,7 @@ class Token(models.Model):
         ("in_service", "In Service"),
         ("completed", "Completed"),
         ("skipped", "Skipped"),
+        ("cancelled", "Cancelled"),
     ]
 
     PRIORITY_CHOICES = [

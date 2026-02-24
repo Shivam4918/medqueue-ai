@@ -29,7 +29,8 @@ from users.notifications import create_notification
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-
+from django.shortcuts import redirect
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils.dateparse import parse_date
@@ -551,18 +552,45 @@ def patient_dashboard(request):
             token.doctor.id,
             token.token_number
         )
+        people_before = Token.objects.filter(
+            doctor=token.doctor,
+            status="waiting",
+            token_number__lt=token.token_number
+        ).count()
 
         context.update({
             "has_token": True,
+            "active_token": token,
             "token_number": token.token_number,
             "doctor_name": token.doctor.name,
             "hospital_name": token.hospital.name,
             "status": token.status.replace("_", " ").title(),
             "estimated_wait": minutes,
+            "queue_position": people_before,
             "eta": timezone.localtime(eta_dt),
         })
 
     return render(request, "patients/home.html", context)
+
+@login_required
+def cancel_token(request):
+    if request.method == "POST":
+        patient = get_or_create_patient_from_user(request.user)
+
+        token = Token.objects.filter(
+            patient=patient,
+            status="waiting"
+        ).first()
+
+
+        if token:
+            token.status = "skipped"
+            token.save()
+            messages.success(request, "Token cancelled successfully.")
+        else:
+            messages.error(request, "No active token found.")
+
+    return redirect("/dashboard/patient/")
 
 @login_required
 def patient_token_history(request):
@@ -598,3 +626,41 @@ def patient_token_history(request):
     }
 
     return render(request, "patients/history.html", context)
+
+@login_required
+def book_token_view(request):
+
+    if getattr(request.user, "role", None) != "patient":
+        messages.error(request, "Only patients can book tokens.")
+        return redirect("/dashboard/patient/")
+
+    if request.method == "POST":
+
+        patient = get_or_create_patient_from_user(request.user)
+
+        existing = Token.objects.filter(
+            patient=patient,
+            status__in=["waiting", "in_service"]
+        ).first()
+
+        if existing:
+            messages.warning(request, "You already have an active token.")
+            return redirect("/dashboard/patient/")
+
+        doctor = Doctor.objects.first()
+
+        if not doctor:
+            messages.error(request, "No doctor available.")
+            return redirect("/dashboard/patient/")
+
+        create_token(
+            patient=patient,
+            doctor=doctor,
+            hospital=doctor.hospital,
+            priority=0
+        )
+
+        messages.success(request, "Token booked successfully.")
+        return redirect("/dashboard/patient/")
+
+    return redirect("/dashboard/patient/")

@@ -1,7 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+from datetime import timedelta
 import random
+from .constants import UserRole
 
 def generate_otp():
     """Return a 6-digit numeric OTP as a string."""
@@ -17,17 +20,13 @@ class User(AbstractUser):
     ]
 
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="patient")
-
-    # Hospital relation (only for staff roles)
-    # temporarily remove hospital FK to avoid checks-instantiation issue
-    # hospital = models.ForeignKey(
-    #     "hospitals.Hospital",
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True
-    # )
-
+    # role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="patient")
+    role = models.CharField(
+    max_length=32,
+    choices=UserRole.choices,
+    null=True,
+    blank=True
+    )
     def __str__(self):
         return f"{self.username} ({self.role})"
 
@@ -54,6 +53,16 @@ class OTP(models.Model):
     def __str__(self):
         return f"{self.phone} — {self.otp} (used={self.is_used})"
     
+class EmailOTP(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=10)
+
+    
 class Notification(models.Model):
     user = models.ForeignKey(
         User,
@@ -69,4 +78,6 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}"
+    
+
 

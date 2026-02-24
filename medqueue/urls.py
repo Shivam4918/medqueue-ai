@@ -1,15 +1,22 @@
 """
-URL configuration for medqueue project.
+URL configuration for MedQueue project
 """
-from django.shortcuts import redirect
-from django.http import JsonResponse
+
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
+from django.http import JsonResponse
 from django.contrib.auth.views import LogoutView
+from django.shortcuts import render
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 
 
+# ==============================
+# PWA MANIFEST
+# ==============================
 def manifest(request):
     return JsonResponse({
         "name": "MedQueue AI",
@@ -32,43 +39,68 @@ def manifest(request):
         ]
     })
 
-def home(request):
-    if not request.user.is_authenticated:
-        return redirect("/dashboard/login/")
 
-    role = getattr(request.user, "role", None)
+# ==============================
+# HOME ROUTER
+# ==============================
+# def home(request):
+#     if not request.user.is_authenticated:
+#         return render(request, "core/home.html")
 
-    if role == "patient":
-        return redirect("/dashboard/patient/")
-    if role == "doctor":
-        return redirect("/dashboard/doctor/")
-    if role == "receptionist":
-        return redirect("/dashboard/receptionist/walkin/")
+#     role = request.user.role
 
-    # admin / staff
-    return redirect("/dashboard/")
+#     if role == "patient":
+#         return redirect("/dashboard/patient/")
 
+#     if role == "doctor":
+#         from doctors.models import Doctor
+#         if Doctor.objects.filter(user=request.user).exists():
+#             return redirect("/dashboard/doctor/")
+#         return render(request, "errors/no_doctor_profile.html", status=403)
 
+#     if role == "receptionist":
+#         return redirect("/dashboard/receptionist/walkin/")
+
+#     if role == "hospital_admin":
+#         return redirect("/dashboard/hospital/")
+
+#     return redirect("/logout/")
+
+# Serve media files in development
+# ==============================
+# ROOT URLS
+# ==============================
 urlpatterns = [
-    path("", home, name="home"),
-    path('admin/', admin.site.urls),
-    path("accounts/login/", auth_views.LoginView.as_view(), name="login"),
-    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
-    path("dashboard/", include("dashboard.urls")), 
-    path("api/token_queue/", include("token_queue.urls")),
-    path('api/auth/', include('users.urls')),
-    path("api/patients/", include("patients.urls")),
-    path('api/hospitals/', include('hospitals.urls')), 
-    path("api/doctors/", include("doctors.urls")), 
-    path("api/core/", include("core.urls")), 
-    path("manifest.json", manifest, name="manifest"),
-    path("accounts/", include("django.contrib.auth.urls")),
-    path("users/", include("users.urls")),
-    path("analytics/", include("analytics.urls")),
-    
+    # Home
+    # path("", include("core.urls")),
+    # path("manifest.json", manifest, name="manifest"),
+    path("", TemplateView.as_view(template_name="core/home.html"), name="landing"),
+    path("portal/", TemplateView.as_view(template_name="core/portal.html"), name="portal"),
+
+    # Admin
+    path("admin/", admin.site.urls),
+
+    # Auth (portal-based)
+    path("auth/", include("users.urls")),
     path("logout/", LogoutView.as_view(), name="logout"),
-    
-    # or combine in single api router
+
+    # Dashboards
+    path("dashboard/", include("dashboard.urls")),
+
+    # APIs (explicit only)
+    path("api/token_queue/", include("token_queue.urls")),
+    path("api/patients/", include("patients.urls")),
+    path("api/hospitals/", include("hospitals.urls")),
+    path("api/doctors/", include("doctors.urls")),
+    # path("api/core/", include("core.urls")),
+
+    # Analytics
+    path("analytics/", include("analytics.urls")),
 ]
 
-
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )

@@ -1,46 +1,91 @@
 # dashboard/urls.py
+
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
-from .views import receptionist_queue_page
 
 from .views import (
-    DashboardHomeView,
-    HospitalDetailView,
-    patient_token_page,
+    # Hospital admin / staff
+    hospital_dashboard,
+    hospital_detail_dashboard,
+    hospital_analytics_dashboard,
+
+    # Patient
+    patient_dashboard,
+
+    # Doctor
+    doctor_dashboard,
     doctor_queue_page,
+
+    # Receptionist
     receptionist_walkin_page,
-    doctor_dashboard, 
-    hospital_analytics_dashboard,         # ✅ ADD THIS
+    receptionist_queue_page,
 )
 
 app_name = "dashboard"
 
 urlpatterns = [
-    # ---------- Authentication ----------
-    path("login/", LoginView.as_view(template_name="registration/login.html"), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
 
-    # ---------- Admin / Staff Dashboard ----------
-    path("", DashboardHomeView.as_view(), name="home"),
-    path("hospital/<int:pk>/", HospitalDetailView.as_view(), name="hospital-detail"),
+    # =====================================================
+    # 🏥 HOSPITAL ADMIN (ROLE: hospital_admin)
+    # =====================================================
 
-    # ---------- Patient ----------
-    path("patient/", patient_token_page, name="patient-token"),
+    # Hospital list (main admin dashboard)
+    path("hospital/", hospital_dashboard, name="hospital_dashboard"),
 
-    # ---------- Doctor ----------
-    path("doctor/", doctor_queue_page, name="doctor-queue"),                 # OLD (queue page)
-    path("doctor/dashboard/", doctor_dashboard, name="doctor-dashboard"), 
-       # ✅ NEW (Step 7)
-
-    # ---------- Receptionist ----------
-    path("receptionist/queue/", receptionist_queue_page, name="receptionist-queue"),
-    path("receptionist/walkin/", receptionist_walkin_page, name="walking"),
-
+    # Hospital detail
     path(
-    "hospital/<int:hospital_id>/analytics/",
-    hospital_analytics_dashboard,
-    name="hospital-analytics",
+        "hospital/<int:pk>/",
+        hospital_detail_dashboard,
+        name="hospital_detail",
     ),
 
-    
+    # Hospital analytics (MongoDB)
+    path(
+        "hospital/<int:hospital_id>/analytics/",
+        hospital_analytics_dashboard,
+        name="hospital_analytics",
+    ),
+
+    # =====================================================
+    # 👤 PATIENT (ROLE: patient)
+    # =====================================================
+
+    path(
+        "patient/",
+        patient_dashboard,
+        name="patient_dashboard",
+    ),
+
+    # =====================================================
+    # 👨‍⚕️ DOCTOR (ROLE: doctor)
+    # =====================================================
+
+    # Main doctor dashboard
+    path(
+        "doctor/",
+        doctor_dashboard,
+        name="doctor_dashboard",
+    ),
+
+    # Legacy / queue page (kept for JS compatibility)
+    path(
+        "doctor/queue/",
+        doctor_queue_page,
+        name="doctor_queue",
+    ),
+
+    # =====================================================
+    # 🧾 RECEPTIONIST (ROLE: receptionist)
+    # =====================================================
+
+    path(
+        "receptionist/walkin/",
+        receptionist_walkin_page,
+        name="receptionist_walkin",
+    ),
+
+    path(
+        "receptionist/queue/",
+        receptionist_queue_page,
+        name="receptionist_queue",
+    ),
 ]

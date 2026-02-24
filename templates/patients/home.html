@@ -2,72 +2,113 @@
 {% block title %}Patient Dashboard{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow p-6 space-y-6">
 
-        <!-- App Title -->
-        <h1 class="text-2xl font-bold text-center text-blue-600">
-            🏥 MedQueue
-        </h1>
+<div class="max-w-3xl mx-auto">
 
-        {% if has_token %}
+    {% if has_token %}
 
-        <!-- Token Info -->
-        <div class="text-center space-y-2">
-            <p class="text-gray-500 text-sm">Your Token Number</p>
+    <!-- ACTIVE TOKEN CARD -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 text-center space-y-6">
 
-            <div class="text-5xl font-bold text-green-600">
-                {{ token_number }}
-            </div>
+        <div>
+            <h2 class="text-xl font-semibold text-blue-600 flex justify-center items-center gap-2">
+                🎫 Your Active Token
+            </h2>
+        </div>
 
-            <p class="text-sm text-gray-600">
-                {{ doctor_name }} · {{ hospital_name }}
-            </p>
+        <!-- Token Number -->
+        <div class="text-6xl font-bold text-green-600">
+            {{ token_number }}
+        </div>
 
-            <!-- Status Badge -->
-            <span class="inline-block px-4 py-1 rounded-full text-white text-sm
-          {% if status|lower == 'waiting' %} bg-yellow-500
-          {% elif status|lower == 'in service' %} bg-blue-500
-          {% else %} bg-gray-500 {% endif %}
-        ">
+        <!-- Doctor & Hospital -->
+        <div class="text-gray-600 text-lg">
+            {{ doctor_name }} · {{ hospital_name }}
+        </div>
+
+        <!-- Status Badge -->
+        <div>
+            <span class="px-4 py-2 rounded-full text-white text-sm
+                {% if status|lower == 'waiting' %}
+                    bg-yellow-500
+                {% elif status|lower == 'in service' %}
+                    bg-blue-600
+                {% else %}
+                    bg-gray-500
+                {% endif %}
+            ">
                 {{ status }}
             </span>
-
-            <!-- ETA -->
-            <p class="text-lg font-semibold mt-4">
-                ⏳ Estimated wait:
-                <span class="text-blue-600">{{ estimated_wait }} mins</span>
-            </p>
         </div>
+
+        <!-- Estimated Wait -->
+        <div class="text-lg">
+            ⏳ Estimated wait:
+            <span class="text-blue-600 font-semibold">
+                {{ estimated_wait }} mins
+            </span>
+        </div>
+
+        <div class="text-lg">
+            👥 People before you:
+            <span class="font-semibold text-purple-600">
+                {{ queue_position }}
+            </span>
+        </div>
+
 
         <!-- QR Code -->
         {% if active_token and active_token.qr_code %}
-        <div class="flex flex-col items-center mt-4 space-y-2">
-            <img src="{{ active_token.qr_code.url }}" alt="Token QR Code"
-                class="w-40 h-40 border rounded-lg p-2 bg-white">
-            <p class="text-xs text-gray-500 text-center">
-                Show this QR at hospital reception
+        <div class="flex flex-col items-center mt-6 space-y-2">
+            <img src="{{ active_token.qr_code.url }}" class="w-48 h-48 border rounded-xl p-2 bg-gray-50 shadow-sm">
+
+            <p class="text-sm text-gray-500">
+                Show this QR at reception
             </p>
         </div>
         {% endif %}
 
-        {% else %}
+        <form method="post" action="{% url 'cancel_token' %}">
+            {% csrf_token %}
+            <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">
+                Cancel Token
+            </button>
+        </form>
 
-        <!-- No Token State -->
-        <div class="text-center space-y-4">
-            <p class="text-gray-600">You have no active token.</p>
 
-            <a href="/api/token_queue/book/" class="block w-full min-h-[44px] py-3 px-4
-          text-lg font-semibold rounded-lg
-          bg-blue-600 hover:bg-blue-700
-          text-white transition">
-                ➕ Book Token
-            </a>
-
-        </div>
-
-        {% endif %}
 
     </div>
+
+    {% else %}
+
+    <!-- NO TOKEN STATE -->
+    <div class="bg-white rounded-2xl shadow-lg p-10 text-center space-y-6">
+
+        <h2 class="text-xl font-semibold text-gray-700">
+            You have no active token
+        </h2>
+
+        <form method="post" action="{% url 'book_token_view' %}">
+            {% csrf_token %}
+            <button
+                class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-lg transition">
+                ➕ Book Token
+            </button>
+        </form>
+
+
+    </div>
+
+    {% endif %}
+
 </div>
+
+{% if has_token %}
+<script>
+    setTimeout(function () {
+        location.reload();
+    }, 15000);  // refresh every 15 seconds
+</script>
+{% endif %}
+
 {% endblock %}

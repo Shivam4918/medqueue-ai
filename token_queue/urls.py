@@ -9,13 +9,15 @@ from .views import (
     WalkinTokenAPIView,
     DoctorQueueAPIView,
     TokenCallAPIView,
+    cancel_token,
     TokenCompleteAPIView,
     TokenSkipAPIView,
     TokenPriorityAPIView,
     patient_dashboard,
     patient_token_history,
     VerifyTokenAPIView,
-    DoctorDelayAPIView
+    DoctorDelayAPIView,
+    book_token_view,
 )
 
 # Router for admin/receptionist/doctor CRUD in DRF UI
@@ -31,6 +33,8 @@ urlpatterns = [
 
     # Patient online booking
     path("book/", TokenBookAPIView.as_view(), name="token-book"),
+    path("patient/book/", book_token_view, name="book_token_view"),
+
 
     # Walk-in token creation (receptionist only)
     path("walkin/", WalkinTokenAPIView.as_view(), name="token-walkin"),
@@ -49,5 +53,6 @@ urlpatterns = [
     path("patient/history/", patient_token_history, name="patient-token-history"),
 
     path("tokens/verify/<int:token_id>/", VerifyTokenAPIView.as_view(), name="token-verify"),
+    path("patient/cancel/", cancel_token, name="cancel_token"),
 
 ]
