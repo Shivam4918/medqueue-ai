@@ -1,3 +1,9 @@
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.urls import reverse
+from django.contrib.auth.hashers import make_password
+
 from datetime import timedelta
 import random, re
 from django.conf import settings
@@ -134,61 +140,34 @@ class VerifyOTPView(APIView):
 # =========================================================
 
 def portal_login(request, portal):
-    """
-    Handles login for:
-    /auth/patient/login/
-    /auth/doctor/login/
-    /auth/receptionist/login/
-    /auth/hospital/login/
-    """
 
     expected_role = PORTAL_ROLE_MAP.get(portal)
     if not expected_role:
         return redirect("/")
 
     if request.method == "POST":
-        username = request.POST.get("username")
+        email = request.POST.get("username", "").strip().lower()
         password = request.POST.get("password")
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=email, password=password)
 
         if not user:
-            messages.error(request, "Invalid username or password")
+            messages.error(request, "Invalid email or password.")
             return render(request, "auth/login.html", {"role": portal})
 
-        # Block superuser from portals
-        if user.is_superuser:
-            messages.error(request, "Please use admin login")
-            return redirect("/admin/login/")
+        if not user.is_active:
+            messages.error(request, "Please verify your email first.")
+            return render(request, "auth/login.html", {"role": portal})
 
-        # Role protection
         if user.role != expected_role:
             logout(request)
-            messages.error(request, "Unauthorized portal access")
+            messages.error(request, "Unauthorized access.")
             return render(request, "auth/login.html", {"role": portal})
 
         login(request, user)
-
-        messages.success(
-            request,
-            f"Welcome {user.username}! Logged in as {user.role.replace('_', ' ').title()}"
-        )
-
         return redirect_user_dashboard(user)
 
-    return render(
-        request,
-        "auth/login.html",
-        {
-            "role": portal,
-            "portal_brand": {
-                "patient": "🧍 Patient Portal",
-                "doctor": "👨‍⚕️ Doctor Portal",
-                "receptionist": "🧾 Reception Desk",
-                "hospital": "🏥 Hospital Admin",
-            }.get(portal, "MedQueue Login")
-        }
-    )
+    return render(request, "auth/login.html", {"role": portal})
 
 # ======================
 # Patient Register (WEB)
@@ -436,6 +415,146 @@ def resend_otp(request):
     email.send()
 
     return redirect("users:verify_email_otp")
+
+def password_reset_request(request):
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip().lower()
+
+        user = User.objects.filter(email=email, role="patient").first()
+
+        if user:
+            token_generator = PasswordResetTokenGenerator()
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = token_generator.make_token(user)
+
+            reset_link = request.build_absolute_uri(
+                reverse("users:password_reset_confirm",
+                        kwargs={"uidb64": uid, "token": token})
+            )
+
+            RESET_EXPIRY_MINUTES = 15  # You can change anytime
+            request.session["reset_link_created_at"] = int(time.time())
+            
+            html_content = render_to_string(
+                "emails/password_reset_email.html",
+                {
+                    "name": user.first_name,
+                    "reset_link": reset_link,
+                    "expiry_minutes": RESET_EXPIRY_MINUTES,
+                }
+            )
+
+            email_message = EmailMultiAlternatives(
+                "Reset Your Password | MedQueue AI",
+                strip_tags(html_content),
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+            )
+
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send()
+
+        # Save cooldown timestamp
+        request.session["reset_requested_at"] = int(time.time())
+
+        return redirect("users:password_reset_done")
+
+    return render(request, "auth/password_reset_request.html")
+
+def password_reset_confirm(request, uidb64, token):
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    token_generator = PasswordResetTokenGenerator()
+
+    if user is None or not token_generator.check_token(user, token):
+        messages.error(request, "Invalid or expired reset link.")
+        return redirect("users:patient_login")
+
+    # Use same timeout as settings
+    RESET_EXPIRY_SECONDS = 900  # Must match settings.py
+    created_at = request.session.get("reset_link_created_at")
+
+    if created_at:
+        elapsed = int(time.time()) - created_at
+        remaining_time = RESET_EXPIRY_SECONDS - elapsed
+    else:            
+        remaining_time = 0
+
+    if remaining_time < 0:
+       remaining_time = 0
+
+    if request.method == "POST":
+
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        if len(password1) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        if not re.search(r"[A-Z]", password1):
+            messages.error(request, "Password must contain an uppercase letter.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        if not re.search(r"[a-z]", password1):
+            messages.error(request, "Password must contain a lowercase letter.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        if not re.search(r"\d", password1):
+            messages.error(request, "Password must contain a number.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        if not re.search(r"[!@#$%^&*]", password1):
+            messages.error(request, "Password must contain a special character.")
+            return render(request, "auth/password_reset_confirm.html", {
+                "remaining_time": remaining_time
+            })
+
+        user.password = make_password(password1)
+        user.save()
+
+        return render(request, "auth/password_reset_success.html")
+
+    return render(request, "auth/password_reset_confirm.html", {
+        "remaining_time": remaining_time
+    })
+
+def password_reset_done(request):
+
+    requested_at = request.session.get("reset_requested_at")
+    cooldown = 60
+
+    remaining = 0
+    if requested_at:
+        remaining = cooldown - (int(time.time()) - requested_at)
+        if remaining < 0:
+            remaining = 0
+
+    return render(
+        request,
+        "auth/password_reset_done.html",
+        {"remaining_time": remaining}
+    )
 
 # =========================================================
 # NOTIFICATIONS

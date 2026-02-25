@@ -8,7 +8,10 @@ from .views import (
     patient_register,
     verify_email_otp,
     check_user_exists,
-    resend_otp
+    resend_otp,
+    password_reset_request,
+    password_reset_confirm,
+    password_reset_done
 )
 
 app_name = "users"
@@ -22,6 +25,13 @@ urlpatterns = [
     path("resend-otp/", resend_otp, name="resend_otp"),
 
     path("patient/verify-otp/", verify_email_otp, name="verify_email_otp"),
+
+    # ======================
+    # Password Reset (WEB)
+    # ======================
+    path("password-reset/", password_reset_request, name="password_reset"),
+    path("password-reset/done/", password_reset_done, name="password_reset_done"),
+    path("password-reset-confirm/<uidb64>/<token>/", password_reset_confirm, name="password_reset_confirm"),
 
 
     # ======================
