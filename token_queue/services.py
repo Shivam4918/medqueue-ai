@@ -40,30 +40,23 @@ def generate_next_token_number(doctor_id: int) -> int:
     return int(max_val) + 1
 
 
-def estimate_wait_for_token(doctor_id: int, token_number: int, avg_minutes_per_patient: int = 8) -> Tuple[int, timezone.datetime]:
-    today = _today_date()
+def estimate_wait_for_token(doctor_id: int, token_number: int, avg_minutes_per_patient: int = 8):
+
     pending_statuses = ["waiting", "in_service"]
 
-    if hasattr(Token, "booked_date"):
-        qs = Token.objects.filter(
-            doctor_id=doctor_id,
-            booked_date=today,
-            status__in=pending_statuses,
-            token_number__lt=token_number
-        )
-    else:
-        qs = Token.objects.filter(
-            doctor_id=doctor_id,
-            booked_at__date=today,
-            status__in=pending_statuses,
-            token_number__lt=token_number
-        )
+    tokens_ahead = Token.objects.filter(
+        doctor_id=doctor_id,
+        status__in=pending_statuses,
+        token_number__lt=token_number
+    )
 
-    position = qs.count()
-    eta_minutes = position * int(avg_minutes_per_patient)
-    eta_datetime = timezone.now() + timedelta(minutes=eta_minutes)
+    people_ahead = tokens_ahead.count()
+
+    eta_minutes = people_ahead * avg_minutes_per_patient
+
+    eta_datetime = timezone.localtime() + timedelta(minutes=eta_minutes)
+
     return eta_minutes, eta_datetime
-
 
 def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, priority: int = 0, source: str = "online",) -> Token:
     if hospital is None:

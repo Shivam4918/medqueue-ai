@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard | MedQueue AI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F9FAFB;
+        }
+    </style>
+
+</head>
+
+
+<body class="flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#1E3A8A] min-h-screen text-white p-6">
+
+        <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
+
+        <nav class="space-y-3">
+
+            <a class="block px-4 py-3 bg-white/20 rounded-lg">Dashboard</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">My Queue</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Patient History</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Schedule</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Notifications</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Profile</a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Logout</a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-white p-6 border-b">
+
+            <h1 class="text-xl font-semibold">Doctor Dashboard</h1>
+
+            <div class="flex items-center gap-5">
+
+                <button class="relative">
+                    🔔
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
+                        P
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-semibold">Dr. Priya Sharma</p>
+                        <p class="text-xs text-gray-500">General Medicine • AIIMS Delhi</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- DASHBOARD CONTENT -->
+        <div class="p-8 space-y-8">
+
+            <!-- WELCOME -->
+            <div>
+
+                <h2 class="text-2xl font-bold">Good Morning, Dr. Priya</h2>
+
+                <p class="text-gray-500">
+                    Here is your current OPD queue and patient status.
+                </p>
+
+            </div>
+
+
+
+            <!-- CURRENT PATIENT CARD -->
+            <div class="bg-white p-8 rounded-xl shadow">
+
+                <div class="flex justify-between items-center mb-6">
+
+                    <h3 class="font-semibold text-lg">Current Patient</h3>
+
+                    <span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">
+                        LIVE
+                    </span>
+
+                </div>
+
+
+                <div class="grid grid-cols-4 gap-6 text-center">
+
+                    <div>
+                        <p class="text-sm text-gray-500">CURRENT TOKEN</p>
+                        <p class="text-3xl font-bold text-[#1E3A8A]">A-041</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">PATIENT NAME</p>
+                        <p class="text-lg font-semibold">Rajesh Kumar</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">CONSULTATION TIME</p>
+                        <p class="text-lg font-semibold">8 min</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">QUEUE LENGTH</p>
+                        <p class="text-lg font-semibold">6 Waiting</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ACTION BUTTONS -->
+            <div class="flex flex-wrap gap-4">
+
+                <button class="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700">
+                    Call Next Patient
+                </button>
+
+                <button class="bg-yellow-500 text-white px-6 py-3 rounded-lg shadow hover:bg-yellow-600">
+                    Skip Patient
+                </button>
+
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700">
+                    Mark Consultation Completed
+                </button>
+
+                <button class="bg-red-600 text-white px-6 py-3 rounded-lg shadow hover:bg-red-700">
+                    Emergency Override
+                </button>
+
+                <button class="bg-orange-500 text-white px-6 py-3 rounded-lg shadow hover:bg-orange-600">
+                    Set Delay
+                </button>
+
+                <button class="bg-gray-600 text-white px-6 py-3 rounded-lg shadow hover:bg-gray-700">
+                    Mark Break / Unavailable
+                </button>
+
+            </div>
+
+
+
+            <!-- GRID SECTION -->
+            <div class="grid grid-cols-3 gap-8">
+
+
+                <!-- UPCOMING QUEUE -->
+                <div class="col-span-2 bg-white rounded-xl shadow p-6">
+
+                    <h3 class="font-semibold text-lg mb-4">Upcoming Queue</h3>
+
+                    <table class="w-full text-left">
+
+                        <thead class="text-gray-500 text-sm border-b">
+
+                            <tr>
+                                <th class="pb-2">Token</th>
+                                <th class="pb-2">Patient</th>
+                                <th class="pb-2">Status</th>
+                                <th class="pb-2">Est Wait</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody class="space-y-3">
+
+                            <tr class="border-b">
+                                <td>A-042</td>
+                                <td>Amit Patel</td>
+                                <td>Waiting</td>
+                                <td>12 min</td>
+                            </tr>
+
+                            <tr class="border-b">
+                                <td>A-043</td>
+                                <td>Neha Shah</td>
+                                <td>Waiting</td>
+                                <td>20 min</td>
+                            </tr>
+
+                            <tr>
+                                <td>A-044</td>
+                                <td>Rahul Verma</td>
+                                <td>Waiting</td>
+                                <td>28 min</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+
+                <!-- PERFORMANCE + AI -->
+                <div class="space-y-6">
+
+
+                    <!-- PERFORMANCE CARD -->
+                    <div class="bg-white p-6 rounded-xl shadow">
+
+                        <h3 class="font-semibold mb-4">Performance</h3>
+
+                        <p class="text-sm text-gray-500">Average Consultation Time</p>
+                        <p class="text-2xl font-bold mb-3">7 min</p>
+
+                        <p class="text-sm text-gray-500">Patients Seen Today</p>
+                        <p class="text-2xl font-bold mb-3">24</p>
+
+                        <p class="text-sm text-gray-500">Queue Remaining</p>
+                        <p class="text-2xl font-bold">6</p>
+
+                    </div>
+
+
+                    <!-- AI INSIGHT -->
+                    <div class="bg-orange-50 border border-orange-200 p-5 rounded-xl">
+
+                        <p class="text-orange-600 font-semibold">AI Insight</p>
+
+                        <p class="text-gray-700 mt-2">
+                            Queue congestion expected at 11:00 AM
+                        </p>
+
+                        <p class="text-sm text-gray-500">
+                            Average wait may increase by 30%
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

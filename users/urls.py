@@ -54,4 +54,8 @@ urlpatterns = [
     path("doctor/login/", portal_login, {"portal": "doctor"}, name="doctor_login"),
     path("receptionist/login/", portal_login, {"portal": "receptionist"}, name="reception_login"),
     path("hospital/login/", portal_login, {"portal": "hospital"}, name="hospital_login"),
+
+     # ======================
+    # Portal-based Login (WEB)
+    # ======================
 ]

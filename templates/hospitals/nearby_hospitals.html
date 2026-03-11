@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Nearby Hospitals{% endblock %}
+
+{% block content %}
+
+<div class="bg-[#F9FAFB] min-h-screen py-10">
+
+    <div class="max-w-6xl mx-auto px-4">
+
+        <h1 class="text-2xl font-bold text-[#1E3A8A] mb-8">
+            Nearby Hospitals
+        </h1>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            {% for item in hospitals %}
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+
+                <h2 class="text-lg font-semibold text-[#1E3A8A]">
+                    {{ item.name }}
+                </h2>
+
+                <p class="text-gray-500 text-sm mb-3">
+                    {{ item.city }}
+                </p>
+
+                <div class="space-y-2 text-sm">
+
+                    <p>
+                        Doctors:
+                        <span class="font-semibold">
+                            {{ item.doctor_count }}
+                        </span>
+                    </p>
+
+                    <div class="mt-2 flex items-center gap-2">
+
+                        <span>Live Queue:</span>
+
+                        {% if item.queue_color == "green" %}
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                            {{ item.queue_count }} patients • Low
+                        </span>
+
+                        {% elif item.queue_color == "orange" %}
+                        <span class="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full">
+                            {{ item.queue_count }} patients • Medium
+                        </span>
+
+                        {% else %}
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
+                            {{ item.queue_count }} patients • Crowded
+                        </span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <a href="{% url 'hospital_detail' item.id %}" class="block mt-4 text-center py-2 rounded-lg
+bg-[#0F766E] text-white hover:bg-[#115E59]">
+
+                    View Doctors
+
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

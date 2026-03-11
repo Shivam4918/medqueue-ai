@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Profile | MedQueue AI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F9FAFB;
+        }
+    </style>
+
+</head>
+
+
+<body class="flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#1E3A8A] min-h-screen text-white p-6">
+
+        <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
+
+        <nav class="space-y-3">
+
+            <a href="{% url 'dashboard:patient_dashboard' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Dashboard
+            </a>
+
+            <a href="{% url 'dashboard:queue_live_view' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Queue Live View
+            </a>
+
+            <a href="{% url 'dashboard:patient_tokens' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                My Tokens
+            </a>
+
+            <a href="{% url 'dashboard:book_token' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Book Token
+            </a>
+
+            <a href="{% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Visit History
+            </a>
+
+            <a href="{% url 'dashboard:nearby_hospitals' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Nearby Hospitals
+            </a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Notifications
+            </a>
+
+            <a class="block px-4 py-3 bg-white/20 rounded-lg">
+                Profile
+            </a>
+
+            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
+                Logout
+            </button>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- MAIN -->
+    <div class="flex-1">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-center bg-white p-6 border-b">
+
+            <h1 class="text-xl font-semibold">Patient Profile</h1>
+
+            <div class="flex items-center gap-5">
+
+                <button class="relative">
+                    🔔
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+
+                <div class="relative">
+
+                    <button onclick="toggleUserMenu()" class="flex items-center gap-3">
+
+                        {% if request.user.patient_profile.profile_picture %}
+
+                        <img src="{{ request.user.patient_profile.profile_picture.url }}"
+                            class="w-8 h-8 rounded-full object-cover border">
+
+                        {% else %}
+
+                        <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
+                            {{ request.user.username|first|upper }}
+                        </div>
+
+                        {% endif %}
+
+                        <div class="text-left">
+                            <p class="text-sm font-semibold">{{ request.user.username }}</p>
+                            <p class="text-xs text-gray-500">{{ request.user.get_role_display }}</p>
+                        </div>
+
+                    </button>
+
+
+                    <!-- DROPDOWN -->
+                    <div id="userMenu" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-lg border">
+
+                        <a href="{% url 'dashboard:profile' %}" class="block px-4 py-3 hover:bg-gray-100">
+                            👤 View Profile
+                        </a>
+
+                        <a href="{% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-gray-100">
+                            📜 Visit History
+                        </a>
+
+                        <a href="#" class="block px-4 py-3 hover:bg-gray-100">
+                            🔔 Notifications
+                        </a>
+
+                        <hr>
+
+                        <button onclick="openLogoutModal()"
+                            class="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600">
+                            🚪 Logout
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </header>
+
+
+
+        <!-- PAGE CONTENT -->
+        <div class="p-8">
+
+            <div class="bg-white p-8 rounded-xl shadow max-w-4xl">
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-700">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+
+                <form id="profileForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- PROFILE IMAGE -->
+                    <!-- PROFILE IMAGE + EDIT BUTTON ROW -->
+                    <div class="flex justify-between items-start mb-8">
+
+                        <!-- LEFT SIDE : PROFILE PHOTO -->
+                        <div class="flex items-center gap-6">
+
+                            {% if patient.profile_picture %}
+                            <img id="profilePreview" src="{{ patient.profile_picture.url }}"
+                                class="w-20 h-20 rounded-full object-cover border">
+                            {% else %}
+                            <img id="profilePreview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                class="w-20 h-20 rounded-full object-cover border">
+                            {% endif %}
+
+                            <div>
+                                <label class="text-sm text-gray-600">Profile Photo</label>
+
+                                <input id="profile_picture_input" type="file" name="profile_picture" accept="image/*"
+                                    class="block mt-1 text-sm" onchange="previewImage(event)" disabled>
+                            </div>
+
+                        </div>
+
+
+                        <!-- RIGHT SIDE : EDIT BUTTON -->
+                        <div class="flex gap-3">
+
+                            <button type="button" id="editBtn" onclick="enableEdit()"
+                                class="bg-[#1E3A8A] text-white px-5 py-2 rounded-lg hover:bg-blue-900">
+                                Edit Profile
+                            </button>
+
+                            <button type="button" id="cancelBtn" onclick="disableEdit()"
+                                class="hidden bg-gray-500 text-white px-5 py-2 rounded-lg">
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+
+                        <!-- EMAIL -->
+                        <div class="col-span-2">
+                            <label class="text-sm text-gray-600">Email</label>
+
+                            <input type="email" value="{{ request.user.email }}"
+                                class="w-full border p-3 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+                        </div>
+
+
+                        <!-- PHONE -->
+                        <div>
+                            <label class="text-sm text-gray-600">Phone</label>
+
+                            <input name="phone" value="{{ patient.phone|default:'' }}"
+                                class="w-full border p-3 rounded-lg bg-gray-100 cursor-not-allowed" readonly>
+
+                            {% if errors.phone %}
+                            <p class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
+                            {% endif %}
+                        </div>
+
+
+                        <!-- EMERGENCY CONTACT -->
+                        <div>
+                            <label class="text-sm text-gray-600">Emergency Contact</label>
+
+                            <input id="emergency_contact" name="emergency_contact"
+                                value="{{ patient.emergency_contact|default:'' }}" class="w-full border p-3 rounded-lg"
+                                maxlength="10" oninput="validateEmergency()" readonly>
+
+                            <p id="emergency_error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+
+
+                        <!-- GENDER -->
+                        <div>
+                            <label class="text-sm text-gray-600">Gender</label>
+
+                            <select name="gender" class="w-full border p-3 rounded-lg" disabled>
+
+                                <option value="">Select</option>
+
+                                <option value="male" {% if patient.gender == "male" %}selected{% endif %}>Male</option>
+                                <option value="female" {% if patient.gender == "female" %}selected{% endif %}>Female
+                                </option>
+                                <option value="other" {% if patient.gender == "other" %}selected{% endif %}>Other</option>
+
+                            </select>
+                        </div>
+
+
+                        <!-- DOB -->
+                        <div>
+                            <label class="text-sm text-gray-600">Date of Birth</label>
+
+                            <input type="date" id="dob" name="dob" value="{{ patient.date_of_birth|date:'Y-m-d' }}"
+                                class="w-full border p-3 rounded-lg" onchange="validateDOB()" readonly>
+
+                            <p id="dob_error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+
+
+                        <!-- BLOOD GROUP -->
+                        <div>
+                            <label class="text-sm text-gray-600">Blood Group</label>
+
+                            <input id="blood_group" name="blood_group" value="{{ patient.blood_group|default:'' }}"
+                                class="w-full border p-3 rounded-lg" oninput="validateBloodGroup()" readonly>
+
+                            <p id="blood_error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+
+
+                        <!-- ADDRESS -->
+                        <div class="col-span-2">
+                            <label class="text-sm text-gray-600">Address</label>
+
+                            <textarea name="address" rows="3" class="w-full border p-3 rounded-lg"
+                                readonly>{{ patient.address|default:'' }}</textarea>
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- UPDATE BUTTON -->
+                    <div class="mt-6">
+
+                        <button id="submitBtn" disabled
+                            class="hidden bg-gray-400 text-white px-6 py-3 rounded-lg cursor-not-allowed">
+                            Update Profile
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- LOGOUT MODAL -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+        <div class="bg-white rounded-xl shadow-lg w-96 p-6 text-center">
+
+            <h2 class="text-lg font-semibold mb-2">
+                Confirm Logout
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                Are you sure you want to logout from MedQueue?
+            </p>
+
+            <div class="flex justify-center gap-4">
+
+                <button onclick="closeLogoutModal()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                    Cancel
+                </button>
+
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                        Logout
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+
+        const submitBtn = document.getElementById("submitBtn")
+
+        let bloodValid = true
+        let dobValid = true
+        let emergencyValid = true
+
+
+        // =========================
+        // EDIT MODE ENABLE
+        // =========================
+        function enableEdit() {
+
+            const inputs = document.querySelectorAll("#profileForm input, #profileForm textarea")
+            const selects = document.querySelectorAll("#profileForm select")
+
+            inputs.forEach(el => {
+                if (el.name !== "") {
+                    el.removeAttribute("readonly")
+                }
+            })
+
+            selects.forEach(el => {
+                el.removeAttribute("disabled")
+            })
+
+            document.getElementById("profile_picture_input").removeAttribute("disabled")
+
+            document.getElementById("submitBtn").classList.remove("hidden")
+            document.getElementById("cancelBtn").classList.remove("hidden")
+            document.getElementById("editBtn").classList.add("hidden")
+
+        }
+
+
+        // =========================
+        // CANCEL EDIT
+        // =========================
+        function disableEdit() {
+            location.reload()
+        }
+
+
+
+        // =========================
+        // ENABLE / DISABLE SUBMIT
+        // =========================
+        function checkFormValidity() {
+
+            if (bloodValid && dobValid && emergencyValid) {
+
+                submitBtn.disabled = false
+                submitBtn.classList.remove("bg-gray-400", "cursor-not-allowed")
+                submitBtn.classList.add("bg-[#1E3A8A]", "hover:bg-blue-900")
+
+            } else {
+
+                submitBtn.disabled = true
+                submitBtn.classList.add("bg-gray-400", "cursor-not-allowed")
+
+            }
+
+        }
+
+
+
+        // =========================
+        // IMAGE PREVIEW
+        // =========================
+        function previewImage(event) {
+
+            const file = event.target.files[0]
+
+            if (file) {
+
+                const reader = new FileReader()
+
+                reader.onload = function (e) {
+                    document.getElementById("profilePreview").src = e.target.result
+                }
+
+                reader.readAsDataURL(file)
+
+            }
+
+        }
+
+
+
+        // =========================
+        // EMERGENCY CONTACT VALIDATION
+        // =========================
+        function validateEmergency() {
+
+            let input = document.getElementById("emergency_contact")
+            let error = document.getElementById("emergency_error")
+
+            let number = input.value
+
+            number = number.replace(/\D/g, "")
+            input.value = number
+
+            if (number.length > 0 && !["6", "7", "8", "9"].includes(number[0])) {
+
+                error.innerText = "Mobile number must start with 6, 7, 8, or 9"
+                error.classList.remove("hidden")
+                emergencyValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            if (number.length > 0 && number.length < 10) {
+
+                error.innerText = "Mobile number must be 10 digits"
+                error.classList.remove("hidden")
+                emergencyValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            if (number.length === 10) {
+
+                error.classList.add("hidden")
+                emergencyValid = true
+
+            }
+
+            checkFormValidity()
+
+        }
+
+
+
+        // =========================
+        // BLOOD GROUP VALIDATION
+        // =========================
+        function validateBloodGroup() {
+
+            let input = document.getElementById("blood_group")
+            let error = document.getElementById("blood_error")
+
+            let value = input.value.toUpperCase()
+
+            input.value = value
+
+            const validGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+
+            if (value === "") {
+                error.innerText = "Blood group required"
+                error.classList.remove("hidden")
+                bloodValid = false
+                checkFormValidity()
+                return
+            }
+
+            if (!validGroups.includes(value)) {
+                error.innerText = "Enter valid blood group (A+, A-, B+, B-, AB+, AB-, O+, O-)"
+                error.classList.remove("hidden")
+                bloodValid = false
+            } else {
+                error.classList.add("hidden")
+                bloodValid = true
+            }
+
+            checkFormValidity()
+
+        }
+
+
+
+        // =========================
+        // DOB VALIDATION
+        // =========================
+        function validateDOB() {
+
+            let input = document.getElementById("dob")
+            let error = document.getElementById("dob_error")
+
+            let selectedDate = new Date(input.value)
+            let today = new Date()
+
+            if (!input.value) {
+
+                error.innerText = "Please enter your date of birth"
+                error.classList.remove("hidden")
+                dobValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            if (selectedDate >= today) {
+
+                error.innerText = "Date of birth cannot be today or future date"
+                error.classList.remove("hidden")
+                dobValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            let age = today.getFullYear() - selectedDate.getFullYear()
+
+            if (age > 120) {
+
+                error.innerText = "Please enter a realistic birth date"
+                error.classList.remove("hidden")
+                dobValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            if (age < 1) {
+
+                error.innerText = "Age must be at least 1 year"
+                error.classList.remove("hidden")
+                dobValid = false
+                checkFormValidity()
+                return
+
+            }
+
+            error.classList.add("hidden")
+            dobValid = true
+
+            checkFormValidity()
+
+        }
+
+        function toggleUserMenu() {
+
+            let menu = document.getElementById("userMenu")
+
+            if (menu.classList.contains("hidden")) {
+                menu.classList.remove("hidden")
+            } else {
+                menu.classList.add("hidden")
+            }
+
+        }
+
+
+        // close menu when clicking outside
+        window.addEventListener("click", function (e) {
+
+            let menu = document.getElementById("userMenu")
+
+            if (!e.target.closest(".relative")) {
+                menu.classList.add("hidden")
+            }
+
+        })
+
+        function openLogoutModal() {
+            document.getElementById("logoutModal").classList.remove("hidden")
+        }
+
+        function closeLogoutModal() {
+            document.getElementById("logoutModal").classList.add("hidden")
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -61,6 +61,17 @@ class Token(models.Model):
         default=0
     )
 
+    # ✅ NEW FIELD — BOOKING SOURCE
+    source = models.CharField(
+        max_length=20,
+        choices=[
+            ("online", "Online Booking"),
+            ("walkin", "Walk-in"),
+            ("kiosk", "Self Kiosk"),
+        ],
+        default="online"
+    )
+
     # ✅ NEW FIELD — QR CODE IMAGE
     qr_code = models.ImageField(
         upload_to="token_qr/",
@@ -104,8 +115,11 @@ class Token(models.Model):
 
         # Token number generation (YOUR EXISTING LOGIC)
         if not self.token_number:
+            today = timezone.localdate()
+
             last_token = Token.objects.filter(
-                doctor=self.doctor
+                doctor=self.doctor,
+                booked_at__date=today
             ).order_by("-token_number").first()
 
             self.token_number = 1 if not last_token else last_token.token_number + 1
@@ -119,8 +133,8 @@ class Token(models.Model):
             super().save(update_fields=["qr_code"])
 
     class Meta:
-        ordering = ["booked_at"]
-        unique_together = ["doctor", "booked_at", "token_number"]
+        ordering = ["token_number"]
+        unique_together = ["doctor", "token_number", "booked_at"]
 
     def __str__(self):
         return f"Token {self.token_number} - {self.doctor}"

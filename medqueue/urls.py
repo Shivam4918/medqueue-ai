@@ -79,6 +79,7 @@ urlpatterns = [
 
     # Admin
     path("admin/", admin.site.urls),
+    path("hospitals/", include("hospitals.urls")),
 
     # Auth (portal-based)
     path("auth/", include("users.urls")),
@@ -90,7 +91,7 @@ urlpatterns = [
     # APIs (explicit only)
     path("api/token_queue/", include("token_queue.urls")),
     path("api/patients/", include("patients.urls")),
-    path("api/hospitals/", include("hospitals.urls")),
+    path("api/hospitals/", include("hospitals.api_urls")),
     path("api/doctors/", include("doctors.urls")),
     # path("api/core/", include("core.urls")),
 

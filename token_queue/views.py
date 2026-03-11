@@ -371,6 +371,7 @@ class TokenCompleteAPIView(TokenActionBase):
         if denied:
             return denied
 
+        # Mark current token as completed
         token.status = "completed"
         token.save(update_fields=["status", "updated_at"])
 
@@ -381,18 +382,37 @@ class TokenCompleteAPIView(TokenActionBase):
             token_id=token.id,
         )
 
-        # 🔴 REAL-TIME BROADCAST (ADD HERE)
+        # 🔵 FIND NEXT TOKEN
+        next_token = Token.objects.filter(
+            doctor=token.doctor,
+            status="waiting"
+        ).order_by("token_number").first()
+
+        # 🔵 AUTO CALL NEXT PATIENT
+        if next_token:
+            next_token.status = "in_service"
+            next_token.called_at = timezone.now()
+            next_token.save(update_fields=["status", "called_at", "updated_at"])
+
+            # Notify patient
+            if next_token.patient and next_token.patient.user:
+                message = f"Your token {next_token.token_number} has been called."
+                create_notification(next_token.patient.user, message)
+                notify_user_async(next_token.patient.user, message)
+
+        # 🔴 REALTIME BROADCAST
         broadcast_queue_update(
             token.doctor.id,
             {
                 "event": "token_completed",
                 "token_id": token.id,
-                "status": token.status
+                "status": "completed"
             }
         )
-        
 
-        return Response({"detail": "Token completed."})
+        return Response({
+            "detail": "Token completed and next patient called."
+        })
 
 
 class TokenSkipAPIView(TokenActionBase):
@@ -529,48 +549,57 @@ class DoctorDelayAPIView(APIView):
         })
 
     
-@login_required
-def patient_dashboard(request):
-    # Only patients allowed
-    if getattr(request.user, "role", None) != "patient":
-        return render(request, "patients/not_allowed.html")
+# @login_required
+# def patient_dashboard(request):
 
-    patient = get_or_create_patient_from_user(request.user)
+#     if getattr(request.user, "role", None) != "patient":
+#         return render(request, "patients/not_allowed.html")
 
-    # Get active token
-    token = Token.objects.filter(
-        patient=patient,
-        status__in=["waiting", "in_service"]
-    ).select_related("doctor", "hospital").first()
+#     patient = get_or_create_patient_from_user(request.user)
 
-    context = {
-        "has_token": False
-    }
+#     active_token = Token.objects.filter(
+#         patient=patient,
+#         status__in=["waiting", "in_service"]
+#     ).order_by("-token_number").first()
 
-    if token:
-        minutes, eta_dt = estimate_wait_for_token(
-            token.doctor.id,
-            token.token_number
-        )
-        people_before = Token.objects.filter(
-            doctor=token.doctor,
-            status="waiting",
-            token_number__lt=token.token_number
-        ).count()
+#     now_serving_number = None
+#     patients_ahead = 0
+#     queue_position = None
+#     estimated_wait = 0
 
-        context.update({
-            "has_token": True,
-            "active_token": token,
-            "token_number": token.token_number,
-            "doctor_name": token.doctor.name,
-            "hospital_name": token.hospital.name,
-            "status": token.status.replace("_", " ").title(),
-            "estimated_wait": minutes,
-            "queue_position": people_before,
-            "eta": timezone.localtime(eta_dt),
-        })
+#     if active_token:
 
-    return render(request, "patients/home.html", context)
+#         doctor = active_token.doctor
+
+#         # current serving token
+#         serving_token = Token.objects.filter(
+#             doctor=doctor,
+#             status="in_service"
+#         ).order_by("token_number").first()
+
+#         if serving_token:
+#             now_serving_number = serving_token.token_number
+#         else:
+#             now_serving_number = 1
+
+#         # queue position based on token difference
+#         queue_position = max(active_token.token_number - now_serving_number + 1, 1)
+
+#         # patients ahead
+#         patients_ahead = max(queue_position - 1, 0)
+
+#         # estimated wait
+#         estimated_wait = patients_ahead * 8
+
+#     context = {
+#         "active_token": active_token,
+#         "now_serving_number": now_serving_number,
+#         "patients_ahead": patients_ahead,
+#         "queue_position": queue_position,
+#         "estimated_wait": estimated_wait,
+#     }
+
+#     return render(request, "patients/dashboard.html", context)
 
 @login_required
 def cancel_token(request):

@@ -1,12 +1,12 @@
-# hospitals/urls.py
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import HospitalViewSet
-
-router = DefaultRouter()
-# register at the root of this app's router
-router.register(r"", HospitalViewSet, basename="hospital")
+from django.urls import path
+from .views import nearby_hospitals, hospital_detail
 
 urlpatterns = [
-    path("", include(router.urls)),
+
+    # Nearby hospitals list
+    path("nearby/", nearby_hospitals, name="nearby_hospitals"),
+
+    # Hospital detail page
+    path("<int:pk>/", hospital_detail, name="hospital_detail"),
+
 ]

@@ -1,6 +1,7 @@
 # dashboard/urls.py
 
 from django.urls import path
+from .views import queue_live_view,patient_tokens_view,book_token_view,visit_history_view,profile_view,nearby_hospitals_view
 
 from .views import (
     # Hospital admin / staff
@@ -55,6 +56,39 @@ urlpatterns = [
         name="patient_dashboard",
     ),
 
+    path(
+        "patient/tokens/",
+        patient_tokens_view,
+        name="patient_tokens",
+    ),
+
+    path(
+        "patient/book-token/",
+        book_token_view,
+        name="book_token",
+    ),
+
+    path(
+        "patient/visit-history/",
+        visit_history_view,
+        name="visit_history"
+    ),
+
+    path(
+        "patient/profile/",
+        profile_view,
+        name="profile"
+    ),
+
+    path(
+        "nearby-hospitals/",
+        nearby_hospitals_view,
+        name="nearby_hospitals"
+    ),
+
+    #live queue
+     path("queue/live/", queue_live_view, name="queue_live_view"),
+
     # =====================================================
     # 👨‍⚕️ DOCTOR (ROLE: doctor)
     # =====================================================
@@ -88,4 +122,6 @@ urlpatterns = [
         receptionist_queue_page,
         name="receptionist_queue",
     ),
+
+    
 ]

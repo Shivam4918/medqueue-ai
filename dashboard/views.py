@@ -1,18 +1,20 @@
 # dashboard/views.py
-
+from math import sqrt
+import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from users.decorators import role_required
 from django.contrib import messages
-
+from token_queue.services import create_token
 from hospitals.models import Hospital
 from doctors.models import Doctor
 from token_queue.models import Token
 from token_queue.services import estimate_wait_for_token
 from patients.services import get_or_create_patient_from_user
 from django.db.models import Q
+from patients.models import Patient
 
 from analytics.reports import (
     total_patients_today,
@@ -82,38 +84,73 @@ def hospital_analytics_dashboard(request, hospital_id):
 @login_required
 @role_required("patient")
 def patient_dashboard(request):
-
+    today = timezone.localdate()
     if getattr(request.user, "role", None) != "patient":
         return render(request, "patients/not_allowed.html")
-    
+
     patient = get_or_create_patient_from_user(request.user)
 
     token = Token.objects.filter(
         patient=patient,
-        status__in=["waiting", "in_service"]
+        status__in=["waiting", "in_service"],
+        booked_at__date=today
     ).select_related("doctor", "hospital").first()
 
     context = {"has_token": False}
 
     if token:
-        # Calculate queue position
-        # queue_position = Token.objects.filter(
-        #     doctor=token.doctor,
-        #     status__in=["waiting", "in_service"],
-        #     token_number__lt=token.token_number
-        # ).count()
 
+        # Current running token
+        running_token = Token.objects.filter(
+            doctor=token.doctor,
+            status="in_service",
+            booked_at__date=today
+        ).order_by("token_number").first()
+
+        now_serving = running_token.token_number if running_token else None
+
+        # People ahead in queue
+        people_before = Token.objects.filter(
+            doctor=token.doctor,
+            status__in=["waiting","in_service"],
+            booked_at__date=today,
+            token_number__lt=token.token_number
+        ).count()
+
+        # Estimated wait
         minutes, eta_dt = estimate_wait_for_token(
             token.doctor.id,
             token.token_number
         )
 
-        people_before = Token.objects.filter(
+        # Total queue length
+        queue_length = Token.objects.filter(
             doctor=token.doctor,
-            status="waiting",
-            token_number__lt=token.token_number
+            status__in=["waiting","in_service"],
+            booked_at__date=today
         ).count()
 
+        # Next tokens in queue
+        next_tokens = Token.objects.filter(
+            doctor=token.doctor,
+            status="waiting",
+            booked_at__date=today
+        ).order_by("token_number")[:3]
+        
+        # Nearby hospitals
+        hospitals = Hospital.objects.all().order_by("name")[:5]
+
+        # Recent visits (last completed tokens)
+        recent_visits = (
+            Token.objects
+            .filter(
+                patient=patient,
+                status="completed"
+            )
+            .select_related("doctor", "hospital")
+            .order_by("-booked_at")[:3]
+        )
+        
         context.update({
             "has_token": True,
             "active_token": token,
@@ -121,14 +158,138 @@ def patient_dashboard(request):
             "doctor_name": token.doctor.name,
             "hospital_name": token.hospital.name,
             "status": token.status.replace("_", " ").title(),
+
+            "now_serving": now_serving,
+            "queue_position": people_before + 1,
+            "queue_length": queue_length,
+
             "estimated_wait": minutes,
             "eta": timezone.localtime(eta_dt),
-            "queue_position": people_before,
+
+            "next_tokens": [t.token_number for t in next_tokens],
+            "hospitals": hospitals,
+            "recent_visits": recent_visits
         })
 
+    return render(request, "patients/dashboard.html", context)
 
-    return render(request, "patients/home.html", context)
+@login_required
+@role_required("patient")
+def profile_view(request):
 
+    patient = get_or_create_patient_from_user(request.user)
+
+    errors = {}
+
+    if request.method == "POST":
+
+        phone = request.POST.get("phone")
+        emergency = request.POST.get("emergency_contact")
+        dob = request.POST.get("dob")
+
+        # ===============================
+        # PHONE VALIDATION
+        # ===============================
+        if phone:
+            if not phone.isdigit() or len(phone) != 10:
+                errors["phone"] = "Phone number must be exactly 10 digits."
+
+        # ===============================
+        # EMERGENCY CONTACT VALIDATION
+        # ===============================
+        if emergency:
+
+            if not emergency.isdigit():
+                errors["emergency_contact"] = "Emergency contact must contain only numbers."
+
+            elif len(emergency) != 10:
+                errors["emergency_contact"] = "Emergency contact must be exactly 10 digits."
+
+            elif emergency[0] not in ["6", "7", "8", "9"]:
+                errors["emergency_contact"] = "Mobile number must start with 6, 7, 8, or 9."
+
+        # ===============================
+        # DOB VALIDATION
+        # ===============================
+        if not dob:
+            errors["dob"] = "Please enter your date of birth."
+
+        # ===============================
+        # SAVE DATA ONLY IF NO ERRORS
+        # ===============================
+        if not errors:
+
+            patient.phone = phone
+            patient.emergency_contact = emergency
+            patient.gender = request.POST.get("gender")
+            patient.blood_group = request.POST.get("blood_group")
+            patient.address = request.POST.get("address")
+
+            if dob:
+                patient.date_of_birth = dob
+
+            if request.FILES.get("profile_picture"):
+                patient.profile_picture = request.FILES["profile_picture"]
+
+            patient.save()
+
+            messages.success(request, "Profile updated successfully!")
+
+            return redirect("dashboard:profile")
+
+    return render(
+        request,
+        "patients/profile.html",
+        {
+            "patient": patient,
+            "errors": errors
+        }
+    )
+
+@login_required
+@role_required("patient")
+def nearby_hospitals_view(request):
+
+    user_lat = 21.1702
+    user_lng = 72.8311
+
+    hospitals = Hospital.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+
+    hospital_data = []
+
+    for hospital in hospitals:
+
+        distance = sqrt(
+            (hospital.latitude - user_lat) ** 2 +
+            (hospital.longitude - user_lng) ** 2
+        )
+
+        # Simulated queue load (AI prediction later)
+        queue_load = random.randint(5, 40)
+
+        estimated_wait = queue_load * 2
+
+        hospital_data.append({
+            "hospital": hospital,
+            "distance": round(distance * 111, 2),
+            "queue_load": queue_load,
+            "estimated_wait": estimated_wait
+        })
+
+    # Sort by distance
+    hospital_data.sort(key=lambda x: x["distance"])
+
+    nearest_hospitals = hospital_data[:5]
+
+    # AI Recommendation (shortest queue)
+    recommended = min(nearest_hospitals, key=lambda x: x["queue_load"])
+
+    context = {
+        "hospitals": nearest_hospitals,
+        "recommended_hospital": recommended
+    }
+
+    return render(request, "patients/nearby_hospitals.html", context)
 
 # ======================================================
 # 👨‍⚕️ DOCTOR DASHBOARD
@@ -186,4 +347,158 @@ def receptionist_queue_page(request):
         request,
         "dashboard/receptionist_queue.html",
         {"doctors": doctors}
+    )
+
+# ======================================================
+# 📺 QUEUE LIVE VIEW
+# ======================================================
+
+@login_required
+def queue_live_view(request):
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    today = timezone.localdate()
+
+    token = Token.objects.filter(
+        patient=patient,
+        status__in=["waiting", "in_service"],
+        booked_at__date=today
+    ).select_related("doctor", "hospital").first()
+    # token = Token.objects.filter(
+    #     patient=patient,
+    #     status__in=["waiting", "in_service"]
+        
+    # ).select_related("doctor", "hospital").first()
+
+    if not token:
+        return render(request, "patients/queue_live.html", {
+            "no_token": True
+        })
+
+    # Current running token
+    running_token = Token.objects.filter(
+        doctor=token.doctor,
+        status="in_service"
+    ).order_by("token_number").first()
+
+    now_serving = running_token.token_number if running_token else None
+
+    # Patients ahead
+    people_before = Token.objects.filter(
+        doctor=token.doctor,
+        status__in=["waiting", "in_service"],
+        token_number__lt=token.token_number
+    ).count()
+
+    # Next tokens
+    next_tokens = Token.objects.filter(
+        doctor=token.doctor,
+        status="waiting"
+    ).order_by("token_number")[:5]
+
+    context = {
+        "hospital": token.hospital,
+        "now_serving": now_serving,
+        "next_tokens": next_tokens,
+        "my_token": token.token_number,
+        "position": people_before + 1,
+        "patients_ahead": people_before,
+    }
+
+    return render(request, "patients/queue_live.html", context)
+
+@login_required
+def patient_tokens_view(request):
+
+    tokens = (
+        Token.objects
+        .filter(patient__user=request.user)
+        .select_related("doctor", "hospital")
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "patients/my_tokens.html",
+        {
+            "tokens": tokens
+        }
+    )
+
+@login_required
+@role_required("patient")
+def book_token_view(request):
+
+    hospitals = Hospital.objects.all()
+    doctors = Doctor.objects.select_related("hospital")
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    # 🔴 CHECK IF PATIENT ALREADY HAS ACTIVE TOKEN
+    existing_token = Token.objects.filter(
+        patient=patient,
+        status__in=["waiting", "in_service"]
+    ).first()
+
+    if existing_token:
+        messages.warning(
+            request,
+            f"You already have an active token (A-{existing_token.token_number})."
+        )
+        return redirect("dashboard:patient_dashboard")
+
+    if request.method == "POST":
+
+        hospital_id = request.POST.get("hospital")
+        doctor_id = request.POST.get("doctor")
+
+        hospital = Hospital.objects.get(id=hospital_id)
+        doctor = Doctor.objects.get(id=doctor_id)
+
+        # Create new token
+        token = create_token(
+            patient=patient,
+            doctor=doctor,
+            hospital=hospital
+        )
+
+        messages.success(
+            request,
+            f"Token A-{token.token_number} booked successfully!"
+        )
+
+        return redirect("dashboard:patient_dashboard")
+
+    return render(
+        request,
+        "patients/book_token.html",
+        {
+            "hospitals": hospitals,
+            "doctors": doctors
+        }
+    )
+
+@login_required
+@role_required("patient")
+def visit_history_view(request):
+
+    patient = get_or_create_patient_from_user(request.user)
+
+    visits = (
+        Token.objects
+        .filter(
+            patient=patient,
+            status="completed"
+        )
+        .select_related("doctor", "hospital")
+        .order_by("-booked_at")
+    )
+
+    return render(
+        request,
+        "patients/visit_history.html",
+        {
+            "visits": visits
+        }
     )

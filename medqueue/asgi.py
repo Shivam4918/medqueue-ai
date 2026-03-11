@@ -15,7 +15,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "medqueue.settings")
 django.setup()
 
 # Import websocket routes
-from .routing import websocket_urlpatterns
+from dashboard.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

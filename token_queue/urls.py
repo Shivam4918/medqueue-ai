@@ -13,7 +13,7 @@ from .views import (
     TokenCompleteAPIView,
     TokenSkipAPIView,
     TokenPriorityAPIView,
-    patient_dashboard,
+    # patient_dashboard,
     patient_token_history,
     VerifyTokenAPIView,
     DoctorDelayAPIView,
@@ -45,7 +45,7 @@ urlpatterns = [
 
 
     # Token actions (call, complete, skip, priority)
-    path("patient/home/", patient_dashboard, name="patient-dashboard"),
+    # path("patient/home/", patient_dashboard, name="patient-dashboard"),
     path("tokens/<int:pk>/call/", TokenCallAPIView.as_view(), name="token-call"),
     path("tokens/<int:pk>/complete/", TokenCompleteAPIView.as_view(), name="token-complete"),
     path("tokens/<int:pk>/skip/", TokenSkipAPIView.as_view(), name="token-skip"),
