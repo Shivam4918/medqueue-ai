@@ -1,0 +1,68 @@
+{% extends "hospitals/base.html" %}
+
+{% block page_title %}
+Doctors
+{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between mb-6">
+
+    <h2 class="text-2xl font-semibold">
+        Doctors - {{ hospital.name }}
+    </h2>
+
+    <a href="/hospitals/doctors/add/" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg">
+        Add Doctor
+    </a>
+
+</div>
+
+
+<div class="bg-white rounded-xl shadow p-6">
+
+    {% for doctor in doctors %}
+
+    <div class="flex justify-between items-center border-b pb-4 mb-4">
+
+        <div>
+
+            <p class="font-semibold">
+                Dr. {{ doctor.name }}
+            </p>
+
+            <p class="text-sm text-gray-500">
+                {{ doctor.speciality }}
+            </p>
+
+            <p class="text-xs text-gray-400">
+                OPD: {{ doctor.opd_start }} - {{ doctor.opd_end }}
+            </p>
+
+        </div>
+
+        <div class="flex gap-3">
+
+            <a href="/hospitals/doctors/{{ doctor.id }}/edit/" class="text-blue-600 text-sm">
+                Edit
+            </a>
+
+            <a href="/hospitals/doctors/{{ doctor.id }}/disable/" class="text-red-600 text-sm">
+                Disable
+            </a>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <p class="text-gray-500">
+        No doctors available.
+    </p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

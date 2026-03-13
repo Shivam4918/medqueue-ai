@@ -59,7 +59,7 @@
                     <p class="text-gray-600 text-sm mb-6">
                         Manage doctors, staff, and analytics.
                     </p>
-                    <a href="/users/hospital/login/"
+                    <a href="{% url 'users:hospital_login' %}"
                         class="block px-6 py-3 bg-[#1E3A8A] text-white rounded-xl hover:bg-blue-900 transition shadow">
                         Login
                     </a>
@@ -74,7 +74,7 @@
                     <p class="text-gray-600 text-sm mb-6">
                         Manage live OPD queue & patients.
                     </p>
-                    <a href="/users/doctor/login/"
+                    <a href="{% url 'users:doctor_login' %}"
                         class="block px-6 py-3 bg-[#16A34A] text-white rounded-xl hover:bg-green-700 transition shadow">
                         Login
                     </a>
@@ -89,7 +89,7 @@
                     <p class="text-gray-600 text-sm mb-6">
                         Handle walk-ins & token flow.
                     </p>
-                    <a href="/users/receptionist/login/"
+                    <a href="{% url 'users:reception_login' %}"
                         class="block px-6 py-3 bg-[#F97316] text-white rounded-xl hover:bg-orange-600 transition shadow">
                         Login
                     </a>

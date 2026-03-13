@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital Admin Account Created</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f3f6fb;font-family:Segoe UI,Arial,sans-serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+        <tr>
+            <td align="center">
+
+                <table width="520" cellpadding="0" cellspacing="0"
+                    style="background:#ffffff;border-radius:14px;padding:40px 35px;box-shadow:0 10px 25px rgba(0,0,0,0.05);">
+
+                    <!-- HEADER -->
+
+                    <tr>
+                        <td align="center">
+
+                            <h2 style="margin:0;color:#1E3A8A;">
+                                MedQueue <span style="color:#0F766E;">AI</span>
+                            </h2>
+
+                            <p style="margin:5px 0 25px 0;color:#6b7280;font-size:14px;">
+                                Smart OPD Queue Management
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- TITLE -->
+
+                    <tr>
+                        <td>
+
+                            <h3 style="color:#111;margin-bottom:15px;">
+                                Hospital Admin Account Created
+                            </h3>
+
+                            <p style="color:#555;font-size:15px;line-height:1.6;">
+                                Dear {{ admin_name }},
+                                <br><br>
+
+                                Your hospital has been successfully registered on the
+                                <strong>MedQueue AI Platform</strong>.
+                                <br><br>
+
+                                You can now manage doctors, queues and hospital operations from your admin dashboard.
+
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- HOSPITAL INFO -->
+
+                    <tr>
+                        <td style="padding-top:10px;font-size:15px;color:#333;">
+
+                            <strong>Hospital Name:</strong> {{ hospital_name }}
+
+                        </td>
+                    </tr>
+
+                    <!-- LOGIN CREDENTIALS BOX -->
+
+                    <tr>
+                        <td align="center" style="padding:30px 0;">
+
+                            <div style="
+background:#f0f9ff;
+padding:20px 30px;
+border-radius:10px;
+display:inline-block;
+text-align:left;
+">
+
+                                <p style="margin:0;font-weight:600;color:#111;">
+                                    Admin Login Credentials
+                                </p>
+
+                                <p style="margin:10px 0 0 0;color:#444;font-size:14px;">
+                                    <strong>Email:</strong> {{ email }}
+                                    <br>
+                                    <strong>Password:</strong> {{ password }}
+                                </p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    <!-- LOGIN BUTTON -->
+
+                    <tr>
+                        <td align="center">
+
+                            <a href="{{ login_url }}" style="
+background:#1E3A8A;
+color:#ffffff;
+padding:14px 28px;
+text-decoration:none;
+border-radius:8px;
+font-size:15px;
+font-weight:600;
+display:inline-block;
+">
+
+                                Login to Dashboard
+
+                            </a>
+
+                        </td>
+                    </tr>
+
+                    <!-- SECURITY NOTE -->
+
+                    <tr>
+                        <td style="padding-top:30px;font-size:14px;color:#444;line-height:1.6;">
+
+                            Please change your password after your first login for security reasons.
+
+                        </td>
+                    </tr>
+
+                </table>
+
+                <!-- FOOTER -->
+
+                <p style="color:#9ca3af;font-size:12px;margin-top:25px;text-align:center;">
+                    Need help? Contact us at
+                    <strong>support@medqueue.ai</strong>
+                    <br>
+                    © 2026 MedQueue AI. All rights reserved.
+                </p>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

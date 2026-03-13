@@ -1,0 +1,106 @@
+{% extends "receptionist/base.html" %}
+
+{% block page_title %}
+Receptionist Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-8">
+
+    <h2 class="text-2xl font-bold">
+        Welcome, {{ request.user.first_name }}
+    </h2>
+
+    <p class="text-gray-500">
+        Manage walk-in patients and monitor hospital queues.
+    </p>
+
+
+    <!-- STATS -->
+
+    <div class="grid grid-cols-4 gap-6">
+
+        <div class="bg-white p-6 rounded-xl shadow">
+
+            <p class="text-sm text-gray-500">
+                Doctors Available
+            </p>
+
+            <p class="text-3xl font-bold text-[#1E3A8A]">
+                {{ total_doctors }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white p-6 rounded-xl shadow">
+
+            <p class="text-sm text-gray-500">
+                Waiting Patients
+            </p>
+
+            <p class="text-3xl font-bold text-orange-500">
+                {{ waiting_tokens }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white p-6 rounded-xl shadow">
+
+            <p class="text-sm text-gray-500">
+                In Service
+            </p>
+
+            <p class="text-3xl font-bold text-green-600">
+                {{ in_service_tokens }}
+            </p>
+
+        </div>
+
+
+        <div class="bg-white p-6 rounded-xl shadow">
+
+            <p class="text-sm text-gray-500">
+                Completed Today
+            </p>
+
+            <p class="text-3xl font-bold">
+                {{ completed_tokens }}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- QUICK ACTIONS -->
+
+    <div class="bg-white p-6 rounded-xl shadow">
+
+        <h3 class="text-lg font-semibold mb-6">
+            Quick Actions
+        </h3>
+
+        <div class="grid grid-cols-3 gap-6">
+
+            <a href="#" class="bg-[#1E3A8A] text-white p-6 rounded-xl text-center">
+                Create Walk-in Token
+            </a>
+
+            <a href="#" class="bg-[#0F766E] text-white p-6 rounded-xl text-center">
+                Scan Patient QR
+            </a>
+
+            <a href="#" class="bg-orange-500 text-white p-6 rounded-xl text-center">
+                View Live Queue
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

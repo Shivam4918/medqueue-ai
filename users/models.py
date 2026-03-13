@@ -27,6 +27,15 @@ class User(AbstractUser):
     null=True,
     blank=True
     )
+
+    hospital = models.ForeignKey(
+        "hospitals.Hospital",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="staff"
+    )
+    
     def __str__(self):
         return f"{self.username} ({self.role})"
 

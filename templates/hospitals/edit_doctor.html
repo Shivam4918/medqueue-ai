@@ -1,0 +1,39 @@
+{% extends "hospitals/base.html" %}
+
+{% block page_title %}
+Edit Doctor
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-xl">
+
+    <h2 class="text-2xl font-semibold mb-6">
+        Edit Doctor
+    </h2>
+
+    <form method="POST" class="space-y-4">
+
+        {% csrf_token %}
+
+        <input type="text" name="name" value="{{ doctor.name }}" class="w-full border p-3 rounded-lg">
+
+        <input type="text" name="speciality" value="{{ doctor.speciality }}" class="w-full border p-3 rounded-lg">
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <input type="time" name="opd_start" value="{{ doctor.opd_start|time:'H:i' }}" class="border p-3 rounded-lg">
+
+            <input type="time" name="opd_end" value="{{ doctor.opd_end|time:'H:i' }}" class="border p-3 rounded-lg">
+
+        </div>
+
+        <button class="bg-[#1E3A8A] text-white px-6 py-3 rounded-lg">
+            Update Doctor
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

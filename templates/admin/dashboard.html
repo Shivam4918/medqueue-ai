@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Super Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 flex">
+
+    <aside class="w-64 bg-black text-white min-h-screen p-6">
+
+        <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
+
+        <nav class="space-y-3">
+
+            <a class="block px-4 py-3 bg-white/20 rounded-lg">
+                Dashboard
+            </a>
+
+            <a href="/hospitals/create/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Add Hospital
+            </a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Hospitals
+            </a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Users
+            </a>
+
+            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                System Logs
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <div class="flex-1 p-8">
+
+        <h1 class="text-xl font-semibold mb-6">
+            Platform Overview
+        </h1>
+
+        <div class="grid grid-cols-4 gap-6">
+
+            <div class="bg-white p-6 rounded-xl shadow">
+                <p>Total Hospitals</p>
+                <p class="text-3xl font-bold">{{ hospitals }}</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow">
+                <p>Total Patients</p>
+                <p class="text-3xl font-bold">{{ patients }}</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow">
+                <p>Tokens Today</p>
+                <p class="text-3xl font-bold">{{ tokens }}</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow">
+                <p>System Health</p>
+                <p class="text-3xl font-bold text-green-600">
+                    Healthy
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

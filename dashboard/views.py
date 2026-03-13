@@ -31,10 +31,53 @@ from analytics.reports import (
 @login_required
 @role_required("hospital_admin")
 def hospital_dashboard(request):
-    hospitals = Hospital.objects.all().order_by("name")
-    return render(request, "dashboard/hospital_list.html", {
-        "hospitals": hospitals
-    })
+
+    user = request.user
+
+    # Ensure hospital admin
+    if user.role != "hospital_admin":
+        return render(request, "patients/not_allowed.html")
+
+    # Get hospital for this admin
+    hospital = Hospital.objects.filter(admin=user).first()
+
+    if not hospital:
+        return render(request, "patients/not_allowed.html")
+
+    # Stats
+    total_doctors = Doctor.objects.filter(
+        hospital=hospital,
+        is_active=True
+    ).count()
+
+    waiting_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="waiting"
+    ).count()
+
+    in_service_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="in_service"
+    ).count()
+
+    completed_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="completed"
+    ).count()
+
+    context = {
+        "hospital": hospital,
+        "total_doctors": total_doctors,
+        "waiting_tokens": waiting_tokens,
+        "in_service_tokens": in_service_tokens,
+        "completed_tokens": completed_tokens,
+    }
+
+    return render(
+        request,
+        "hospitals/hospital_dashboard.html",
+        context
+    )
 
 
 @login_required
@@ -501,4 +544,47 @@ def visit_history_view(request):
         {
             "visits": visits
         }
+    )
+
+@login_required
+def receptionist_dashboard(request):
+
+    if request.user.role != "receptionist":
+        return render(request,"patients/not_allowed.html")
+
+    hospital = request.user.hospital
+
+    doctors = Doctor.objects.filter(
+        hospital=hospital,
+        is_active=True
+    )
+
+    total_doctors = doctors.count()
+
+    waiting_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="waiting"
+    ).count()
+
+    in_service_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="in_service"
+    ).count()
+
+    completed_tokens = Token.objects.filter(
+        hospital=hospital,
+        status="completed"
+    ).count()
+
+    context = {
+        "total_doctors":total_doctors,
+        "waiting_tokens":waiting_tokens,
+        "in_service_tokens":in_service_tokens,
+        "completed_tokens":completed_tokens
+    }
+
+    return render(
+        request,
+        "receptionist/dashboard.html",
+        context
     )

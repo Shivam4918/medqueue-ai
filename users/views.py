@@ -145,7 +145,25 @@ def portal_login(request, portal):
     if not expected_role:
         return redirect("/")
 
+    # ======================
+    # SELECT TEMPLATE
+    # ======================
+
+    template_map = {
+        "patient": "auth/login.html",
+        "doctor": "auth/doctor_login.html",
+        "receptionist": "auth/reception_login.html",
+        "hospital": "auth/hospital_login.html",
+    }
+
+    template = template_map.get(portal, "auth/login.html")
+
+    # ======================
+    # HANDLE LOGIN
+    # ======================
+
     if request.method == "POST":
+
         email = request.POST.get("username", "").strip().lower()
         password = request.POST.get("password")
 
@@ -153,21 +171,26 @@ def portal_login(request, portal):
 
         if not user:
             messages.error(request, "Invalid email or password.")
-            return render(request, "auth/login.html", {"role": portal})
+            return render(request, template, {"role": portal})
 
         if not user.is_active:
             messages.error(request, "Please verify your email first.")
-            return render(request, "auth/login.html", {"role": portal})
+            return render(request, template, {"role": portal})
 
         if user.role != expected_role:
             logout(request)
             messages.error(request, "Unauthorized access.")
-            return render(request, "auth/login.html", {"role": portal})
+            return render(request, template, {"role": portal})
 
         login(request, user)
+
         return redirect_user_dashboard(user)
 
-    return render(request, "auth/login.html", {"role": portal})
+    # ======================
+    # GET REQUEST
+    # ======================
+
+    return render(request, template, {"role": portal})
 
 # ======================
 # Patient Register (WEB)
@@ -371,7 +394,7 @@ def verify_email_otp(request):
         del request.session["registration_data"]
 
         login(request, user)
-        return render(request, "users/success.html")
+        return redirect("dashboard:patient_dashboard")
 
     return render(request, "users/verify_otp.html", {
         "remaining_time": remaining_time

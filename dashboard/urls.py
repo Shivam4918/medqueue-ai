@@ -19,6 +19,7 @@ from .views import (
     # Receptionist
     receptionist_walkin_page,
     receptionist_queue_page,
+    receptionist_dashboard
 )
 
 app_name = "dashboard"
@@ -123,5 +124,9 @@ urlpatterns = [
         name="receptionist_queue",
     ),
 
-    
+    path(
+        "receptionist/",
+        receptionist_dashboard,
+        name="receptionist_dashboard"
+    )
 ]

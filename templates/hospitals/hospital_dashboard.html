@@ -1,0 +1,63 @@
+{% extends "hospitals/base.html" %}
+
+{% block page_title %}
+{{ hospital.name }} Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-cols-4 gap-6">
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-sm text-gray-500">Total Doctors</p>
+        <p class="text-3xl font-bold text-[#1E3A8A]">{{ total_doctors }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-sm text-gray-500">Waiting Patients</p>
+        <p class="text-3xl font-bold text-orange-500">{{ waiting_tokens }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-sm text-gray-500">In Service</p>
+        <p class="text-3xl font-bold text-green-600">{{ in_service_tokens }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <p class="text-sm text-gray-500">Completed Today</p>
+        <p class="text-3xl font-bold">{{ completed_tokens }}</p>
+    </div>
+
+</div>
+
+
+<div class="bg-white p-6 rounded-xl shadow mt-8">
+
+    <h3 class="text-lg font-semibold mb-5">
+        Doctors in {{ hospital.name }}
+    </h3>
+
+    {% for doctor in doctors %}
+
+    <div class="flex justify-between border-b pb-3 mb-3">
+
+        <div>
+            <p class="font-semibold">Dr. {{ doctor.name }}</p>
+            <p class="text-sm text-gray-500">{{ doctor.speciality }}</p>
+        </div>
+
+        <div class="text-sm text-gray-500">
+            {{ doctor.opd_start }} - {{ doctor.opd_end }}
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <p class="text-gray-500">No doctors available.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

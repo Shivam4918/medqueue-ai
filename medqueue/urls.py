@@ -71,29 +71,34 @@ def manifest(request):
 # ROOT URLS
 # ==============================
 urlpatterns = [
-    # Home
-    # path("", include("core.urls")),
-    # path("manifest.json", manifest, name="manifest"),
+
+    # Landing Page
     path("", TemplateView.as_view(template_name="core/home.html"), name="landing"),
+
+    # Staff portal selection page
     path("portal/", TemplateView.as_view(template_name="core/portal.html"), name="portal"),
 
-    # Admin
+    # Core custom routes (Super admin dashboard)
+    path("", include("core.urls")),
+
+    # Django admin (default)
     path("admin/", admin.site.urls),
+
+    # Hospitals
     path("hospitals/", include("hospitals.urls")),
 
-    # Auth (portal-based)
+    # Auth
     path("auth/", include("users.urls")),
     path("logout/", LogoutView.as_view(), name="logout"),
 
     # Dashboards
     path("dashboard/", include("dashboard.urls")),
 
-    # APIs (explicit only)
+    # APIs
     path("api/token_queue/", include("token_queue.urls")),
     path("api/patients/", include("patients.urls")),
     path("api/hospitals/", include("hospitals.api_urls")),
     path("api/doctors/", include("doctors.urls")),
-    # path("api/core/", include("core.urls")),
 
     # Analytics
     path("analytics/", include("analytics.urls")),

@@ -8,7 +8,7 @@ def redirect_user_dashboard(user):
     """
 
     if user.is_superuser:
-        return redirect("/admin/")
+        return redirect("/admin/dashboard/")
 
     role = getattr(user, "role", None)
 
@@ -18,11 +18,11 @@ def redirect_user_dashboard(user):
     if role == "doctor":
         return redirect("/dashboard/doctor/")
 
-    if role == "receptionist":
-        return redirect("/dashboard/receptionist/walkin/")
+    if user.role == "receptionist":
+        return redirect("/dashboard/receptionist/")
 
     if role == "hospital_admin":
-        return redirect("/dashboard/hospital/")
+        return redirect("/hospitals/dashboard/")
 
     # Fallback
     return redirect("/")

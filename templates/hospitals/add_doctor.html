@@ -1,0 +1,39 @@
+{% extends "hospitals/hospital_dashboard.html" %}
+
+{% block content %}
+
+<div class="p-8 max-w-xl">
+
+    <h2 class="text-2xl font-semibold mb-6">
+        Add Doctor
+    </h2>
+
+    <form method="POST" class="space-y-4">
+
+        {% csrf_token %}
+
+        <input type="text" name="name" placeholder="Doctor Name" class="w-full border p-3 rounded-lg" required>
+
+        <input type="email" name="email" placeholder="Doctor Email" class="w-full border p-3 rounded-lg" required>
+
+        <input type="password" name="password" placeholder="Password" class="w-full border p-3 rounded-lg" required>
+
+        <input type="text" name="speciality" placeholder="Speciality" class="w-full border p-3 rounded-lg">
+
+        <div class="grid grid-cols-2 gap-4">
+
+            <input type="time" name="opd_start" class="border p-3 rounded-lg">
+
+            <input type="time" name="opd_end" class="border p-3 rounded-lg">
+
+        </div>
+
+        <button class="bg-[#1E3A8A] text-white px-6 py-3 rounded-lg">
+            Create Doctor
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
