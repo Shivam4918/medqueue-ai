@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -55,7 +56,7 @@
                 Nearby Hospitals
             </a>
 
-            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'users:patient_notifications' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
                 Notifications
             </a>
 
@@ -82,20 +83,68 @@
 
             <div class="flex items-center gap-5">
 
-                <button class="relative">
-                    🔔
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                <div class="relative">
 
-                <div class="flex items-center gap-3">
+                    <a href="{% url 'users:patient_notifications' %}" class="text-xl">
 
-                    <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
-                        {{ request.user.username|first|upper }}
-                    </div>
+                        🔔
 
-                    <div>
-                        <p class="text-sm font-semibold">{{ request.user.username }}</p>
-                        <p class="text-xs text-gray-500">{{ request.user.get_role_display }}</p>
+                        <span id="notif-count"
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 rounded-full hidden">
+                            0
+                        </span>
+
+                    </a>
+
+                </div>
+
+                <div class="relative">
+
+                    <button onclick="toggleUserMenu()" class="flex items-center gap-3">
+
+                        {% if request.user.patient_profile.profile_picture %}
+
+                        <img src="{{ request.user.patient_profile.profile_picture.url }}"
+                            class="w-8 h-8 rounded-full object-cover border">
+
+                        {% else %}
+
+                        <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
+                            {{ request.user.first_name|first|upper }}
+                        </div>
+
+                        {% endif %}
+
+                        <div class="text-left">
+                            <p class="text-sm font-semibold">{{ request.user.first_name }}</p>
+                            <p class="text-xs text-gray-500">{{ request.user.get_role_display }}</p>
+                        </div>
+
+                    </button>
+
+
+                    <!-- DROPDOWN -->
+                    <div id="userMenu" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-lg border">
+
+                        <a href="{% url 'dashboard:profile' %}" class="block px-4 py-3 hover:bg-gray-100">
+                            👤 View Profile
+                        </a>
+
+                        <a href="{% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-gray-100">
+                            📜 Visit History
+                        </a>
+
+                        <a href="#" class="block px-4 py-3 hover:bg-gray-100">
+                            🔔 Notifications
+                        </a>
+
+                        <hr>
+
+                        <button onclick="openLogoutModal()"
+                            class="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600">
+                            🚪 Logout
+                        </button>
+
                     </div>
 
                 </div>
@@ -160,6 +209,35 @@
         function closeLogoutModal() {
             document.getElementById("logoutModal").classList.add("hidden")
         }
+
+        function loadNotificationCount() {
+
+            fetch("{% url 'users:notification_count' %}")
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    let badge = document.getElementById("notif-count")
+
+                    if (data.count > 0) {
+
+                        badge.innerText = data.count
+                        badge.classList.remove("hidden")
+
+                    } else {
+
+                        badge.classList.add("hidden")
+
+                    }
+
+                })
+
+        }
+
+        loadNotificationCount()
+
+        setInterval(loadNotificationCount, 5000)
 
     </script>
 </body>

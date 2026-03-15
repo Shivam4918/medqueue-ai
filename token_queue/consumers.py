@@ -20,15 +20,16 @@ class DoctorQueueConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    async def receive(self, text_data):
-        """
-        We are not receiving messages from client.
-        This consumer is PUSH-only.
-        """
-        pass
+    # async def receive(self, text_data):
+    #     """
+    #     We are not receiving messages from client.
+    #     This consumer is PUSH-only.
+    #     """
+    #     pass
 
     async def queue_update(self, event):
         """
         Called when server sends queue updates
         """
+        print("🔥 WebSocket event received:", event)
         await self.send(text_data=json.dumps(event["data"]))

@@ -83,7 +83,7 @@ class CreateTokenAPIView(APIView):
             {
                 "event": "token_created",
                 "token_id": token.id,
-                "token_number": token.token_number,
+                "token_number": token.display_token,
                 "status": token.status,
                 "priority": token.priority
             }
@@ -96,7 +96,7 @@ class CreateTokenAPIView(APIView):
 
         return Response({
             "token_id": token.id,
-            "token_number": token.token_number,
+            "token_number": token.display_token,
             "status": token.status,
             "priority": token.priority,
             "estimated_wait_minutes": minutes,
@@ -141,7 +141,7 @@ class TokenBookAPIView(APIView):
             {
                 "event": "token_created",
                 "token_id": token.id,
-                "token_number": token.token_number,
+                "token_number": token.display_token,
                 "status": token.status,
                 "priority": token.priority
             }
@@ -154,7 +154,7 @@ class TokenBookAPIView(APIView):
 
         return Response({
             "token_id": token.id,
-            "token_number": token.token_number,
+            "token_number": token.display_token,
             "estimated_wait_minutes": minutes,
             "eta": timezone.localtime(eta_dt).isoformat()
         }, status=status.HTTP_201_CREATED)
@@ -218,7 +218,7 @@ class WalkinTokenAPIView(APIView):
             {
                 "event": "token_created",
                 "token_id": token.id,
-                "token_number": token.token_number,
+                "token_number": token.display_token,
                 "status": token.status,
                 "priority": token.priority
             }
@@ -232,7 +232,7 @@ class WalkinTokenAPIView(APIView):
 
         return Response({
             "token_id": token.id,
-            "token_number": token.token_number,
+            "token_number": token.display_token,
             "patient_username": user.username,
             "patient_name": patient_name,
             "estimated_wait_minutes": minutes,
@@ -321,13 +321,17 @@ class TokenCallAPIView(TokenActionBase):
 
             # 2️⃣ Notify CURRENT patient (DB + async)
             if token.patient and token.patient.user:
-                message = f"Your token {token.token_number} has been called. Please proceed."
-                
-                # In-app notification (DB)
-                create_notification(token.patient.user, message)
 
-                # Async SMS / Email (Celery)
-                notify_user_async(token.patient.user, message)
+                create_notification(
+                    user=token.patient.user,
+                    title="Token Called",
+                    message=f"Your token {token.display_token} is now being called. Please proceed to the doctor."
+                )
+
+                notify_user_async(
+                    token.patient.user,
+                    f"Your token {token.display_token} is now being called."
+                )
 
             # 3️⃣ Find NEXT waiting token
             next_token = Token.objects.filter(
@@ -337,10 +341,14 @@ class TokenCallAPIView(TokenActionBase):
 
             # 4️⃣ Notify NEXT patient (DB + async)
             if next_token and next_token.patient and next_token.patient.user:
-                message = f"Your token {next_token.token_number} is coming next."
+                message = f"Your token {next_token.display_token} is coming next."
                 
                 # In-app notification (DB)
-                create_notification(next_token.patient.user, message)
+                create_notification(
+                    user=next_token.patient.user,
+                    title="Up Next",
+                    message=f"Your token {next_token.display_token} is coming next. Please be ready."
+                )
 
                 # Async SMS / Email (Celery)
                 notify_user_async(next_token.patient.user, message)
@@ -351,14 +359,14 @@ class TokenCallAPIView(TokenActionBase):
             {
                 "event": "token_called",
                 "token_id": token.id,
-                "token_number": token.token_number,
+                "token_number": token.display_token,
                 "status": "in_service"
             }
         )
 
         return Response({
             "detail": "Token called.",
-            "token_number": token.token_number
+            "token_number": token.display_token
         })
 
 class TokenCompleteAPIView(TokenActionBase):
@@ -396,8 +404,12 @@ class TokenCompleteAPIView(TokenActionBase):
 
             # Notify patient
             if next_token.patient and next_token.patient.user:
-                message = f"Your token {next_token.token_number} has been called."
-                create_notification(next_token.patient.user, message)
+                message = f"Your token {next_token.display_token} has been called."
+                create_notification(
+                    user=next_token.patient.user,
+                    title="Token Called",
+                    message=f"Your token {next_token.display_token} is now being called."
+                )
                 notify_user_async(next_token.patient.user, message)
 
         # 🔴 REALTIME BROADCAST
@@ -406,9 +418,22 @@ class TokenCompleteAPIView(TokenActionBase):
             {
                 "event": "token_completed",
                 "token_id": token.id,
+                "token_number": token.display_token,
                 "status": "completed"
             }
         )
+
+        # If next patient is auto-called
+        if next_token:
+            broadcast_queue_update(
+                token.doctor.id,
+                {
+                    "event": "token_called",
+                    "token_id": next_token.id,
+                    "token_number": next_token.display_token,
+                    "status": "in_service"
+                }
+            )
 
         return Response({
             "detail": "Token completed and next patient called."

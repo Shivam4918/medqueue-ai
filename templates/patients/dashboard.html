@@ -47,7 +47,9 @@
                 Nearby Hospitals
             </a>
 
-            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Notifications</a>
+            <a href="{% url 'users:patient_notifications' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+                Notifications
+            </a>
 
             <a href="{% url 'dashboard:profile' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
                 Profile
@@ -72,10 +74,20 @@
 
             <div class="flex items-center gap-5">
 
-                <button class="relative">
-                    🔔
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                <div class="relative">
+
+                    <a href="{% url 'users:patient_notifications' %}" class="text-xl">
+
+                        🔔
+
+                        <span id="notif-count"
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 rounded-full hidden">
+                            0
+                        </span>
+
+                    </a>
+
+                </div>
 
                 <div class="relative">
 
@@ -89,13 +101,13 @@
                         {% else %}
 
                         <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
-                            {{ request.user.username|first|upper }}
+                            {{ request.user.first_name|first|upper }}
                         </div>
 
                         {% endif %}
 
                         <div class="text-left">
-                            <p class="text-sm font-semibold">{{ request.user.username }}</p>
+                            <p class="text-sm font-semibold">{{ request.user.first_name }}</p>
                             <p class="text-xs text-gray-500">{{ request.user.get_role_display }}</p>
                         </div>
 
@@ -162,7 +174,7 @@
             <div>
 
                 <h2 class="text-2xl font-bold">
-                    Good Morning, {{ request.user.username }}
+                    {{ greeting }}, {{ request.user.first_name }}
                 </h2>
 
                 <p class="text-gray-500">
@@ -215,9 +227,9 @@
 
                     <div>
                         <p class="text-sm text-gray-500">YOUR TOKEN</p>
-                        <p class="text-3xl font-bold text-[#1E3A8A]">
+                        <p id="token-number" class="text-3xl font-bold text-[#1E3A8A]">
                             {% if active_token %}
-                            A-{{ active_token.token_number }}
+                            {{ active_token.display_token }}
                             {% else %}
                             No Token
                             {% endif %}
@@ -228,11 +240,11 @@
                         <p class="text-gray-500 text-sm">NOW SERVING</p>
 
                         {% if now_serving %}
-                        <p class="text-3xl font-bold text-green-600">
-                            A-{{ now_serving }}
+                        <p id="now-serving" class="text-3xl font-bold text-green-600">
+                            {{ now_serving_display }}
                         </p>
                         {% else %}
-                        <p class="text-2xl font-bold text-gray-600">
+                        <p id="now-serving" class="text-2xl font-bold text-gray-600">
                             --
                         </p>
                         {% endif %}
@@ -241,7 +253,7 @@
                     <div>
                         <p class="text-sm text-gray-500">POSITION</p>
 
-                        <p class="text-3xl font-bold">
+                        <p id="queue-position" class="text-3xl font-bold">
                             {% if active_token %}
                             #{{ queue_position }}
                             {% else %}
@@ -252,9 +264,15 @@
 
                     <div>
                         <p class="text-sm text-gray-500">EST. WAIT</p>
-                        <p class="text-3xl font-bold text-orange-500">
+                        {% if active_token %}
+                        <p id="estimated-wait" class="text-3xl font-bold text-orange-500">
                             {{ estimated_wait }} min
                         </p>
+                        {% else %}
+                        <p id="estimated-wait" class="text-2xl font-bold text-gray-600">
+                            --
+                        </p>
+                        {% endif %}
                     </div>
 
                 </div>
@@ -367,7 +385,7 @@
                         </p>
 
                         <p class="text-xs mt-2">
-                            Token A-{{ visit.token_number }}
+                            Token {{ visit.display_token }}
                         </p>
 
                         <p class="text-xs text-gray-400">
@@ -456,6 +474,106 @@
         function closeLogoutModal() {
             document.getElementById("logoutModal").classList.add("hidden")
         }
+
+        function loadNotificationCount() {
+
+            fetch("{% url 'users:notification_count' %}")
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    let badge = document.getElementById("notif-count")
+
+                    if (data.count > 0) {
+
+                        badge.innerText = data.count
+                        badge.classList.remove("hidden")
+
+                    } else {
+
+                        badge.classList.add("hidden")
+
+                    }
+
+                })
+
+        }
+
+        loadNotificationCount()
+
+        setInterval(loadNotificationCount, 5000)
+
+        {% if active_token %}
+
+        const doctorId = "{{ active_token.doctor.id }}"
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+
+        console.log("Connecting to doctor queue:", doctorId)
+
+        const socket = new WebSocket(
+            protocol + window.location.host + "/ws/queue/" + doctorId + "/"
+        )
+
+        socket.onopen = function () {
+            console.log("WebSocket connected")
+        }
+
+        socket.onmessage = function (event) {
+
+            const data = JSON.parse(event.data)
+
+            console.log("Queue update received:", data)
+
+            // refresh page when doctor calls token
+            location.reload()
+
+        }
+
+        socket.onerror = function (error) {
+            console.log("WebSocket error:", error)
+        }
+
+        socket.onclose = function () {
+            console.log("WebSocket closed")
+        }
+
+        {% endif %}
+
+        setInterval(loadNotificationCount, 5000)
+
+        function refreshQueueStatus() {
+
+            fetch("{% url 'dashboard:patient_queue_status' %}")
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    if (!data.has_token) {
+                        document.getElementById("token-number").innerText = "No Token"
+                        document.getElementById("now-serving").innerText = "--"
+                        document.getElementById("queue-position").innerText = "--"
+                        document.getElementById("estimated-wait").innerText = "--"
+                        return
+                    }
+
+                    document.getElementById("token-number").innerText = data.display_token
+
+                    if (data.now_serving_display) {
+                        document.getElementById("now-serving").innerText = data.now_serving_display
+                    } else {
+                        document.getElementById("now-serving").innerText = "--"
+                    }
+
+                    document.getElementById("queue-position").innerText = "#" + data.position
+
+                    document.getElementById("estimated-wait").innerText = data.estimated_wait + " min"
+
+                })
+        }
+
+        setInterval(refreshQueueStatus, 1000)
 
     </script>
 </body>

@@ -1,281 +1,169 @@
-<!DOCTYPE html>
+{% extends "patients/base.html" %}
 
-<html lang="en">
+{% block page_title %}
+Book OPD Token
+{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Book Token | MedQueue AI</title>
+{% block content %}
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<div class="max-w-4xl mx-auto space-y-8">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PAGE HEADER -->
+    <div class="flex items-center justify-between">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F9FAFB;
-        }
-    </style>
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">
+                Book OPD Token
+            </h2>
 
-</head>
+            <p class="text-gray-500 mt-1">
+                Choose hospital and doctor to generate your OPD queue token.
+            </p>
+        </div>
 
-<body class="flex">
+        <div
+            class="hidden md:flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-semibold">
+            🟢 Token Booking System
+        </div>
 
-    <!-- SIDEBAR -->
+    </div>
 
-    <aside class="w-64 bg-[#1E3A8A] min-h-screen text-white p-6">
+    <!-- BOOKING CARD -->
+    <div class="bg-white p-10 rounded-2xl shadow-lg border border-gray-100">
 
-        <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
+        <form method="POST" class="space-y-7">
 
-        <nav class="space-y-3">
+            {% csrf_token %}
 
-            <a href="{% url 'dashboard:patient_dashboard' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                Dashboard </a>
-
-            <a href="{% url 'dashboard:queue_live_view' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                Queue Live View </a>
-
-            <a href="{% url 'dashboard:patient_tokens' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                My Tokens </a>
-
-            <a class="block px-4 py-3 bg-white/20 rounded-lg">
-                Book Token
-            </a>
-
-            <a href=" {% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                Visit History
-            </a>
-            <a href="{% url 'dashboard:nearby_hospitals' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                Nearby Hospitals
-            </a>
-            <a class="block px-4 py-3 hover:bg-white/10 rounded-lg">Notifications</a>
-            <a href="{% url 'dashboard:profile' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
-                Profile
-            </a>
-            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
-                Logout
-            </button>
-
-        </nav>
-
-    </aside>
-
-    <!-- MAIN CONTENT -->
-
-    <div class="flex-1">
-
-        <!-- HEADER -->
-
-        <header class="flex justify-between items-center bg-white p-6 border-b">
-
-            <h1 class="text-xl font-semibold">Book OPD Token</h1>
-
-            <div class="relative">
-
-                <button onclick="toggleUserMenu()" class="flex items-center gap-3">
-
-                    {% if request.user.patient_profile.profile_picture %}
-
-                    <img src="{{ request.user.patient_profile.profile_picture.url }}"
-                        class="w-8 h-8 rounded-full object-cover border">
-
-                    {% else %}
-
-                    <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
-                        {{ request.user.username|first|upper }}
-                    </div>
-
-                    {% endif %}
-
-                    <div class="text-left">
-                        <p class="text-sm font-semibold">{{ request.user.username }}</p>
-                        <p class="text-xs text-gray-500">{{ request.user.get_role_display }}</p>
-                    </div>
-
-                </button>
-
-
-                <!-- DROPDOWN -->
-                <div id="userMenu" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-lg border">
-
-                    <a href="{% url 'dashboard:profile' %}" class="block px-4 py-3 hover:bg-gray-100">
-                        👤 View Profile
-                    </a>
-
-                    <a href="{% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-gray-100">
-                        📜 Visit History
-                    </a>
-
-                    <a href="#" class="block px-4 py-3 hover:bg-gray-100">
-                        🔔 Notifications
-                    </a>
-
-                    <hr>
-
-                    <button onclick="openLogoutModal()"
-                        class="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600">
-                        🚪 Logout
-                    </button>
-
-                </div>
-
-            </div>
-
-        </header>
-
-        <!-- PAGE CONTENT -->
-
-        <div class="p-8 space-y-8">
-
-            <!-- PAGE TITLE -->
-
+            <!-- HOSPITAL -->
             <div>
 
-                <h2 class="text-2xl font-bold">
-                    Book Your OPD Token
-                </h2>
+                <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                    Select Hospital
+                </label>
 
-                <p class="text-gray-500">
-                    Select hospital and doctor to generate your token.
+                <select name="hospital" id="hospitalSelect"
+                    class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:outline-none bg-gray-50">
+
+                    <option value="">Choose hospital</option>
+
+                    {% for hospital in hospitals %}
+                    <option value="{{ hospital.id }}">
+                        {{ hospital.name }} — {{ hospital.city }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+
+                <p class="text-xs text-gray-400 mt-2">
+                    Choose the hospital where you want to book your OPD consultation.
                 </p>
 
             </div>
 
-            <!-- BOOKING CARD -->
 
-            <div class="bg-white p-8 rounded-xl shadow max-w-xl">
+            <!-- DOCTOR -->
+            <div>
 
-                <form method="POST" class="space-y-6">
+                <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                    Select Doctor
+                </label>
 
-                    {% csrf_token %}
+                <select name="doctor" id="doctorSelect"
+                    class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-[#1E3A8A] focus:outline-none bg-gray-50">
 
-                    <!-- HOSPITAL -->
+                    <option value="">Select hospital first</option>
 
-                    <div>
+                </select>
 
-                        <label class="block text-sm font-semibold mb-2">
-                            Select Hospital
-                        </label>
-
-                        <select name="hospital"
-                            class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]">
-
-                            {% for hospital in hospitals %}
-
-                            <option value="{{ hospital.id }}">
-                                {{ hospital.name }}
-                            </option>
-
-                            {% endfor %}
-
-                        </select>
-
-                    </div>
-
-                    <!-- DOCTOR -->
-
-                    <div>
-
-                        <label class="block text-sm font-semibold mb-2">
-                            Select Doctor
-                        </label>
-
-                        <select name="doctor"
-                            class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]">
-
-                            {% for doctor in doctors %}
-
-                            <option value="{{ doctor.id }}">
-                                Dr. {{ doctor.name }} — {{ doctor.speciality }}
-                            </option>
-
-                            {% endfor %}
-
-                        </select>
-
-                    </div>
-
-                    <!-- BUTTON -->
-
-                    <button
-                        class="w-full bg-[#1E3A8A] text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
-
-                        Book Token
-
-                    </button>
-
-                </form>
+                <p class="text-xs text-gray-400 mt-2">
+                    Available doctors will appear after selecting a hospital.
+                </p>
 
             </div>
 
-        </div>
 
-    </div>
-    <!-- LOGOUT MODAL -->
-    <div id="logoutModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <!-- GENERATE BUTTON -->
+            <div class="pt-2">
 
-        <div class="bg-white rounded-xl shadow-lg w-96 p-6 text-center">
+                <button type="submit"
+                    class="w-full bg-[#1E3A8A] text-white py-3 rounded-lg font-semibold hover:bg-[#162d6e] transition shadow-md flex items-center justify-center gap-2">
 
-            <h2 class="text-lg font-semibold mb-2">
-                Confirm Logout
-            </h2>
+                    Generate OPD Token
 
-            <p class="text-gray-600 mb-6">
-                Are you sure you want to logout from MedQueue?
-            </p>
-
-            <div class="flex justify-center gap-4">
-
-                <button onclick="closeLogoutModal()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
-                    Cancel
                 </button>
 
-                <form method="POST" action="{% url 'logout' %}">
-                    {% csrf_token %}
-
-                    <button type="submit" class="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
-                        Logout
-                    </button>
-
-                </form>
-
             </div>
 
-        </div>
+        </form>
+
     </div>
-    <script>
-        function toggleUserMenu() {
 
-            let menu = document.getElementById("userMenu")
 
-            if (menu.classList.contains("hidden")) {
-                menu.classList.remove("hidden")
-            } else {
-                menu.classList.add("hidden")
-            }
+    <!-- NOTE -->
+    <div class="bg-gray-50 border rounded-xl p-4 text-sm text-gray-500 text-center">
 
+        After generating your token, you can monitor your position in the
+        <span class="font-semibold text-[#1E3A8A]">Live Queue</span> and receive real-time updates.
+
+    </div>
+
+</div>
+
+<script>
+
+    const hospitalSelect = document.getElementById("hospitalSelect")
+    const doctorSelect = document.getElementById("doctorSelect")
+
+    hospitalSelect.addEventListener("change", function () {
+
+        const hospitalId = this.value
+
+        if (!hospitalId) {
+            doctorSelect.innerHTML = "<option>Select hospital first</option>"
+            return
         }
 
+        doctorSelect.innerHTML = "<option>Loading doctors...</option>"
 
-        // close menu when clicking outside
-        window.addEventListener("click", function (e) {
+        fetch(`/api/doctors/hospital/${hospitalId}/doctors/`)
+            .then(response => response.json())
+            .then(data => {
 
-            let menu = document.getElementById("userMenu")
+                doctorSelect.innerHTML = ""
 
-            if (!e.target.closest(".relative")) {
-                menu.classList.add("hidden")
-            }
+                if (data.length === 0) {
+                    doctorSelect.innerHTML = "<option>No doctors available</option>"
+                    return
+                }
 
-        })
+                data.forEach(doc => {
 
-        function openLogoutModal() {
-            document.getElementById("logoutModal").classList.remove("hidden")
-        }
+                    const option = document.createElement("option")
+                    option.value = doc.id
+                    option.textContent = `Dr. ${doc.name} — ${doc.speciality}`
 
-        function closeLogoutModal() {
-            document.getElementById("logoutModal").classList.add("hidden")
-        }
-    </script>
-</body>
+                    doctorSelect.appendChild(option)
 
-</html>
+                })
+
+            })
+            .catch(error => {
+
+                doctorSelect.innerHTML = "<option>Error loading doctors</option>"
+                console.error(error)
+
+            })
+
+    })
+
+    window.addEventListener("pageshow", function () {
+
+        hospitalSelect.selectedIndex = 0
+        doctorSelect.innerHTML = "<option>Select hospital first</option>"
+
+    })
+
+</script>
+
+{% endblock %}

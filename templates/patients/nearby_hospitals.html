@@ -336,6 +336,30 @@ Nearby Hospitals
 
     }
 
+    function toggleUserMenu() {
+
+        let menu = document.getElementById("userMenu")
+
+        if (menu.classList.contains("hidden")) {
+            menu.classList.remove("hidden")
+        } else {
+            menu.classList.add("hidden")
+        }
+
+    }
+
+
+    // close menu when clicking outside
+    window.addEventListener("click", function (e) {
+
+        let menu = document.getElementById("userMenu")
+
+        if (!e.target.closest(".relative")) {
+            menu.classList.add("hidden")
+        }
+
+    })
+
 </script>
 
 {% endblock %}

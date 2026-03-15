@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from users.notifications import create_notification
 from rest_framework.permissions import AllowAny, IsAuthenticated, SAFE_METHODS
 from token_queue.models import Token
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Doctor
 from .serializers import DoctorSerializer
@@ -88,3 +90,25 @@ class DoctorDelayAPIView(APIView):
             )
 
         return Response({"message": "Patients notified"})
+    
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+@api_view(["GET"])
+def doctors_by_hospital(request, hospital_id):
+
+    doctors = Doctor.objects.filter(
+        hospital_id=hospital_id,
+        is_active=True
+    )
+
+    data = [
+        {
+            "id": doctor.id,
+            "name": doctor.name,
+            "speciality": doctor.speciality
+        }
+        for doctor in doctors
+    ]
+
+    return Response(data)

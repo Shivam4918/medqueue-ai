@@ -3,7 +3,9 @@ from .views import (
     SendOTPView,
     VerifyOTPView,
     notification_list,
+    notification_count,
     mark_notifications_read,
+    patient_notifications,
     portal_login,
     patient_register,
     verify_email_otp,
@@ -39,13 +41,18 @@ urlpatterns = [
     # ======================
     path("patient/register/", patient_register, name="patient_register"),
     path("check-user/", check_user_exists, name="check_user_exists"),
+    path("notifications/",patient_notifications, name="patient_notifications"),
 
 
     # ======================
     # Notifications
     # ======================
-    path("notifications/", notification_list, name="notifications"),
     path("notifications/read/", mark_notifications_read, name="notifications-read"),
+    path(
+        "notifications/count/",
+        notification_count,
+        name="notification_count"
+    ),
 
     # ======================
     # Portal-based Login (WEB)

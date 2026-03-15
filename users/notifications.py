@@ -1,9 +1,10 @@
-from .models import Notification, User
+from .models import Notification
 
-def create_notification(user: User, message: str):
-    if not user:
-        return
-    Notification.objects.create(
+
+def create_notification(user, title, message):
+
+    return Notification.objects.create(
         user=user,
+        title=title,
         message=message
     )

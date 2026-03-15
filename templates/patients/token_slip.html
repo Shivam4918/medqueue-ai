@@ -1,0 +1,89 @@
+{% extends "patients/base.html" %}
+
+{% block page_title %}
+Token Slip
+{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[85vh] flex items-center justify-center px-4">
+
+    <div class="bg-white shadow-xl rounded-xl p-6 w-full max-w-sm text-center border">
+
+        <!-- HEADER -->
+        <h2 class="text-2xl font-bold text-[#1E3A8A]">
+            MedQueue AI
+        </h2>
+
+        <p class="text-gray-400 text-xs mb-3">
+            Digital OPD Token
+        </p>
+
+        <hr class="mb-4">
+
+
+        <!-- HOSPITAL -->
+        <p class="text-gray-400 text-[11px] uppercase tracking-wide">
+            Hospital
+        </p>
+
+        <p class="font-semibold text-sm mb-3 break-words">
+            {{ token.hospital.name }}
+        </p>
+
+
+        <!-- DOCTOR -->
+        <p class="text-gray-400 text-[11px] uppercase tracking-wide">
+            Doctor
+        </p>
+
+        <p class="font-semibold text-sm mb-4 break-words">
+            Dr. {{ token.doctor.name }}
+        </p>
+
+
+        <!-- TOKEN NUMBER -->
+        <p class="text-gray-400 text-[11px] uppercase tracking-wide">
+            Your Token
+        </p>
+
+        <div class="text-5xl font-bold text-[#1E3A8A] my-2">
+            {{ token.display_token }}
+        </div>
+
+
+        <!-- STATUS -->
+        {% if token.status == "waiting" %}
+        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
+            Waiting
+        </span>
+        {% elif token.status == "in_service" %}
+        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+            In Service
+        </span>
+        {% elif token.status == "completed" %}
+        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+            Completed
+        </span>
+        {% endif %}
+
+
+        <!-- QR CODE -->
+        <div class="flex justify-center my-5">
+
+            {% if token.qr_code %}
+            <img src="{{ token.qr_code.url }}" class="w-44 h-44 border rounded-lg shadow">
+            {% endif %}
+
+        </div>
+
+
+        <p class="text-gray-400 text-xs">
+            Show this QR code at reception
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

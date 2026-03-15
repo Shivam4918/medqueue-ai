@@ -3,7 +3,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password
-
+from django.http import JsonResponse
 from datetime import timedelta
 import random, re
 from django.conf import settings
@@ -41,6 +41,7 @@ from .models import EmailOTP
 from django.contrib.auth.hashers import make_password
 
 from django.views.decorators.http import require_GET
+
 
 
 
@@ -600,4 +601,61 @@ def mark_notifications_read(request):
         is_read=False
     ).update(is_read=True)
     return redirect("notifications")
+
+@login_required
+def patient_notifications(request):
+
+    # Get all notifications first
+    notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by("-created_at")
+
+    # ✅ mark notifications as read
+    notifications.filter(is_read=False).update(is_read=True)
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+
+    # Filter first
+    today_notifications = notifications.filter(
+    created_at__date=today
+    ).order_by("-created_at")[:5]
+
+    yesterday_notifications = notifications.filter(
+        created_at__date=yesterday
+    ).order_by("-created_at")[:5]
+
+    older_notifications = notifications.exclude(
+        created_at__date__in=[today, yesterday]
+    ).order_by("-created_at")[:5]
+
+
+    # THEN slice
+    # today_notifications = today_notifications[:20]
+    # yesterday_notifications = yesterday_notifications[:20]
+    # older_notifications = older_notifications[:20]
+
+    context = {
+        "today_notifications": today_notifications,
+        "yesterday_notifications": yesterday_notifications,
+        "older_notifications": older_notifications,
+        "total_notifications": notifications.count(),
+        "notifications": notifications
+    }
+
+    return render(
+        request,
+        "patients/notifications.html",
+        context
+    )
+
+@login_required
+def notification_count(request):
+
+    count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    return JsonResponse({"count": count})
 

@@ -1,8 +1,8 @@
 # token_queue/models.py
 from django.db import models
 from django.utils import timezone
+import string
 
-# ✅ NEW IMPORTS (QR SUPPORT)
 from django.core.files.base import ContentFile
 import qrcode
 import json
@@ -14,6 +14,7 @@ from patients.models import Patient
 
 
 class Token(models.Model):
+
     STATUS_CHOICES = [
         ("waiting", "Waiting"),
         ("in_service", "In Service"),
@@ -47,8 +48,19 @@ class Token(models.Model):
 
     token_number = models.PositiveIntegerField(editable=False)
 
+    # NEW PREFIX FIELD
+    prefix = models.CharField(
+        max_length=5,
+        editable=False,
+        blank=True
+    )
+
     booked_at = models.DateTimeField(default=timezone.now)
-    called_at = models.DateTimeField(null=True, blank=True)
+
+    called_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     status = models.CharField(
         max_length=20,
@@ -61,7 +73,6 @@ class Token(models.Model):
         default=0
     )
 
-    # ✅ NEW FIELD — BOOKING SOURCE
     source = models.CharField(
         max_length=20,
         choices=[
@@ -72,24 +83,47 @@ class Token(models.Model):
         default="online"
     )
 
-    # ✅ NEW FIELD — QR CODE IMAGE
     qr_code = models.ImageField(
         upload_to="token_qr/",
         blank=True,
         null=True
     )
 
-    # timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     # --------------------------------------------------
-    # QR GENERATION LOGIC
+    # TOKEN DISPLAY (A-1, B-3 etc.)
     # --------------------------------------------------
+
+    @property
+    def display_token(self):
+        return f"{self.prefix}-{self.token_number}"
+
+    # --------------------------------------------------
+    # DOCTOR PREFIX GENERATION
+    # --------------------------------------------------
+
+    def get_doctor_prefix(self):
+
+        doctors = Doctor.objects.filter(
+            hospital=self.hospital,
+            is_active=True
+        ).order_by("id")
+
+        doctor_list = list(doctors)
+
+        index = doctor_list.index(self.doctor)
+
+        letters = string.ascii_uppercase
+
+        return letters[index]
+    # --------------------------------------------------
+    # QR CODE GENERATION
+    # --------------------------------------------------
+
     def generate_qr(self):
-        """
-        Generates QR code containing token verification data
-        """
+
         data = {
             "token_id": self.id,
             "hospital_id": self.hospital.id,
@@ -97,10 +131,12 @@ class Token(models.Model):
         }
 
         qr = qrcode.make(json.dumps(data))
+
         buffer = BytesIO()
         qr.save(buffer, format="PNG")
 
         filename = f"token_{self.id}.png"
+
         self.qr_code.save(
             filename,
             ContentFile(buffer.getvalue()),
@@ -108,13 +144,15 @@ class Token(models.Model):
         )
 
     # --------------------------------------------------
-    # SAVE OVERRIDE
+    # SAVE LOGIC
     # --------------------------------------------------
+
     def save(self, *args, **kwargs):
+
         is_new = self.pk is None
 
-        # Token number generation (YOUR EXISTING LOGIC)
         if not self.token_number:
+
             today = timezone.localdate()
 
             last_token = Token.objects.filter(
@@ -122,12 +160,17 @@ class Token(models.Model):
                 booked_at__date=today
             ).order_by("-token_number").first()
 
-            self.token_number = 1 if not last_token else last_token.token_number + 1
+            self.token_number = (
+                1 if not last_token else last_token.token_number + 1
+            )
 
-        # First save (to get self.id)
+        # assign doctor prefix
+        if not self.prefix:
+            self.prefix = self.get_doctor_prefix()
+
         super().save(*args, **kwargs)
 
-        # Generate QR only once (after ID exists)
+        # generate QR after ID exists
         if is_new and not self.qr_code:
             self.generate_qr()
             super().save(update_fields=["qr_code"])
@@ -137,4 +180,4 @@ class Token(models.Model):
         unique_together = ["doctor", "token_number", "booked_at"]
 
     def __str__(self):
-        return f"Token {self.token_number} - {self.doctor}"
+        return f"{self.prefix}-{self.token_number} ({self.doctor})"

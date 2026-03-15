@@ -11,10 +11,15 @@ from .views import (
 
     # Patient
     patient_dashboard,
+    view_token_page,
+    patient_queue_status,
 
     # Doctor
     doctor_dashboard,
     doctor_queue_page,
+    doctor_call_token,
+    doctor_complete_token,
+    doctor_skip_token,
 
     # Receptionist
     receptionist_walkin_page,
@@ -87,6 +92,18 @@ urlpatterns = [
         name="nearby_hospitals"
     ),
 
+    path(
+        "patient/token/<int:token_id>/",
+        view_token_page,
+        name="view_token"
+    ),
+
+    path(
+        "patient/queue-status/",
+        patient_queue_status,
+        name="patient_queue_status"
+    ),
+
     #live queue
      path("queue/live/", queue_live_view, name="queue_live_view"),
 
@@ -106,6 +123,24 @@ urlpatterns = [
         "doctor/queue/",
         doctor_queue_page,
         name="doctor_queue",
+    ),
+
+    path(
+        "doctor/token/<int:token_id>/call/",
+        doctor_call_token,
+        name="doctor_call_token"
+    ),
+
+    path(
+        "doctor/token/<int:token_id>/complete/",
+        doctor_complete_token,
+        name="doctor_complete_token"
+    ),
+
+    path(
+        "doctor/token/<int:token_id>/skip/",
+        doctor_skip_token,
+        name="doctor_skip_token"
     ),
 
     # =====================================================
