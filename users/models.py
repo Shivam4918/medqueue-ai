@@ -1,3 +1,5 @@
+#users/models.py
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -6,8 +8,8 @@ from datetime import timedelta
 import random
 from .constants import UserRole
 
+
 def generate_otp():
-    """Return a 6-digit numeric OTP as a string."""
     return f"{random.randint(100000, 999999):06d}"
 
 
@@ -20,12 +22,12 @@ class User(AbstractUser):
     ]
 
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
-    # role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="patient")
+
     role = models.CharField(
-    max_length=32,
-    choices=UserRole.choices,
-    null=True,
-    blank=True
+        max_length=32,
+        choices=UserRole.choices,
+        null=True,
+        blank=True
     )
 
     hospital = models.ForeignKey(
@@ -35,7 +37,18 @@ class User(AbstractUser):
         blank=True,
         related_name="staff"
     )
-    
+
+    # ✅ NEW: PROFILE IMAGE
+    profile_picture = models.ImageField(
+        upload_to="profiles/",
+        null=True,
+        blank=True
+    )
+
+    # ✅ NEW: USER PREFERENCES (SaaS Feature)
+    notifications_enabled = models.BooleanField(default=True)
+    dark_mode = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 

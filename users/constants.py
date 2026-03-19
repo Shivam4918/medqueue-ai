@@ -1,3 +1,5 @@
+# users/constants.py
+
 from django.db import models
 
 class UserRole(models.TextChoices):

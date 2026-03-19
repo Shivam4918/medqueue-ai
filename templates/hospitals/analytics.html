@@ -1,0 +1,220 @@
+<!-- templates/hospitals/analytics.html -->
+
+{% extends "hospitals/base.html" %}
+
+{% block page_title %}
+Analytics
+{% endblock %}
+
+{% block content %}
+
+<div class="space-y-8">
+
+    <!-- HEADER -->
+
+    <div>
+        <h2 class="text-2xl font-semibold">
+            Hospital Analytics — {{ hospital.name }}
+        </h2>
+        <p class="text-gray-500">
+            Operational insights and performance metrics
+        </p>
+    </div>
+
+    <!-- KPI CARDS -->
+
+    <div class="grid md:grid-cols-5 gap-6">
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <p class="text-gray-500 text-sm">Tokens Today</p>
+            <p class="text-3xl font-bold">{{ total_tokens }}</p>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <p class="text-gray-500 text-sm">Completed</p>
+            <p class="text-3xl font-bold text-green-600">{{ completed }}</p>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <p class="text-gray-500 text-sm">Waiting</p>
+            <p class="text-3xl font-bold text-yellow-600">{{ waiting }}</p>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <p class="text-gray-500 text-sm">Skipped</p>
+            <p class="text-3xl font-bold text-red-600">{{ skipped }}</p>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <p class="text-gray-500 text-sm">Avg Wait Time</p>
+            <p class="text-3xl font-bold text-blue-600">{{ avg_wait }} min</p>
+        </div>
+
+    </div>
+
+    <!-- PEAK HOUR -->
+
+    <div class="bg-white shadow rounded-xl p-6">
+
+        <h3 class="font-semibold text-lg mb-2">
+            Peak OPD Hour
+        </h3>
+
+        <p class="text-3xl font-bold text-indigo-600">
+
+            {% if peak_hour %}
+            {{ peak_hour }}:00
+            {% else %}
+            N/A
+            {% endif %}
+
+        </p>
+
+        <p class="text-gray-500 text-sm">
+            Highest patient arrival time today
+        </p>
+
+    </div>
+
+    <!-- CHARTS -->
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- DOCTOR LOAD -->
+
+        <div class="bg-white shadow rounded-xl p-6">
+
+            <h3 class="font-semibold mb-4">
+                Doctor Load
+            </h3>
+
+            <canvas id="doctorChart"></canvas>
+
+        </div>
+
+        <!-- HOURLY LOAD -->
+
+        <div class="bg-white shadow rounded-xl p-6">
+
+            <h3 class="font-semibold mb-4">
+                Hourly Patient Load
+            </h3>
+
+            <canvas id="hourChart"></canvas>
+
+        </div>
+
+    </div>
+
+    <!-- DOCTOR PERFORMANCE TABLE -->
+
+    <div class="bg-white shadow rounded-xl p-6">
+
+        <h3 class="font-semibold text-lg mb-4">
+            Doctor Performance
+        </h3>
+
+        <table class="w-full text-left">
+
+            <thead class="border-b">
+
+                <tr>
+                    <th class="p-3">Doctor</th>
+                    <th class="p-3">Patients Treated</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for d in doctor_stats %}
+
+                <tr class="border-b">
+
+                    <td class="p-3">Dr. {{ d.doctor__name }}</td>
+
+                    <td class="p-3 font-semibold">
+                        {{ d.total }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="2" class="p-4 text-gray-400">
+                        No data available
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- CHART JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    const doctorLabels = {{ doctor_labels| safe }};
+    const doctorValues = {{ doctor_values| safe }};
+
+    new Chart(document.getElementById("doctorChart"), {
+
+        type: "bar",
+
+        data: {
+            labels: doctorLabels,
+            datasets: [{
+                label: "Patients",
+                data: doctorValues,
+                backgroundColor: "#687FE5"
+            }]
+        },
+
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+
+    });
+
+
+
+    const hourLabels = {{ hour_labels| safe }};
+    const hourValues = {{ hour_values| safe }};
+
+    new Chart(document.getElementById("hourChart"), {
+
+        type: "line",
+
+        data: {
+            labels: hourLabels,
+            datasets: [{
+                label: "Patients per hour",
+                data: hourValues,
+                borderColor: "#22c55e",
+                backgroundColor: "rgba(34,197,94,0.1)",
+                fill: true,
+                tension: 0.4
+            }]
+        },
+
+        options: {
+            responsive: true
+        }
+
+    });
+
+</script>
+
+{% endblock %}

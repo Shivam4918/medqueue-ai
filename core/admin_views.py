@@ -1,3 +1,5 @@
+# core/admin_views.py
+
 from django.shortcuts import render
 from hospitals.models import Hospital
 from patients.models import Patient

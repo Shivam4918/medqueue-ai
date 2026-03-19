@@ -1,3 +1,5 @@
+<!-- templates/receptionist/base.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +10,7 @@
     <title>Receptionist Panel | MedQueue AI</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
@@ -32,29 +34,47 @@
             MedQueue AI
         </h2>
 
-        <nav class="space-y-3">
+        <nav class="space-y-2">
 
-            <a href="{% url 'dashboard:receptionist_dashboard' %}" class="block px-4 py-3 bg-white/20 rounded-lg">
+            <a href="{% url 'dashboard:receptionist_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 Dashboard
             </a>
 
-            <a href="{% url 'dashboard:receptionist_walkin' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:receptionist_walkin' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 Create Token
             </a>
 
-            <a href="#" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:scan_qr_page' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="qr-code" class="w-5 h-5"></i>
                 Scan QR Token
             </a>
 
-            <a href="{% url 'dashboard:receptionist_queue' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:receptionist_queue' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="activity" class="w-5 h-5"></i>
                 Live Queue
             </a>
 
-            <a href="#" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:doctor_list' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="stethoscope" class="w-5 h-5"></i>
                 Doctor List
             </a>
 
-            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:receptionist_profile' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                Profile
+            </a>
+
+            <button onclick="openLogoutModal()"
+                class="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
                 Logout
             </button>
 
@@ -77,19 +97,27 @@
             <div class="flex items-center gap-5">
 
                 <button class="relative">
-                    🔔
+                    <i data-lucide="bell" class="w-5 h-5"></i>
                     <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                 </button>
 
-                <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard:receptionist_profile' %}"
+                    class="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
 
-                    <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
-                        {{ request.user.username|first|upper }}
+                    <!-- PROFILE IMAGE -->
+                    {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover border">
+                    {% else %}
+                    <div
+                        class="w-9 h-9 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full font-semibold">
+                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
                     </div>
+                    {% endif %}
 
-                    <div>
-                        <p class="text-sm font-semibold">
-                            {{ request.user.username }}
+                    <!-- NAME -->
+                    <div class="text-left">
+                        <p class="text-sm font-semibold leading-tight">
+                            {{ request.user.first_name }} {{ request.user.last_name }}
                         </p>
 
                         <p class="text-xs text-gray-500">
@@ -97,11 +125,30 @@
                         </p>
                     </div>
 
-                </div>
+                </a>
 
             </div>
 
         </header>
+
+
+        {% if messages %}
+        <div class="px-8 mt-4 space-y-2">
+            {% for message in messages %}
+            <div class="p-3 rounded-lg text-sm font-medium
+        {% if message.tags == 'success' %}
+            bg-green-100 text-green-700
+        {% elif message.tags == 'error' %}
+            bg-red-100 text-red-700
+        {% else %}
+            bg-gray-100 text-gray-700
+        {% endif %}
+    ">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- PAGE CONTENT -->
 
@@ -159,6 +206,21 @@
             document.getElementById("logoutModal").classList.add("hidden")
         }
 
+        const currentPath = window.location.pathname;
+
+        document.querySelectorAll("aside nav a").forEach(link => {
+            if (link.getAttribute("href") === currentPath) {
+                link.classList.add("bg-white/20");
+            }
+        });
+
+        lucide.createIcons();
+
+        setTimeout(() => {
+            document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]').forEach(el => {
+                el.style.display = "none";
+            });
+        }, 3000);
     </script>
 
 </body>

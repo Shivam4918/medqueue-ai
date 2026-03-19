@@ -1,3 +1,5 @@
+#medqueue/urls.py
+
 """
 URL configuration for MedQueue project
 """
@@ -11,7 +13,7 @@ from django.shortcuts import render
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-
+from token_queue.views import track_token_view
 
 
 # ==============================
@@ -40,36 +42,6 @@ def manifest(request):
     })
 
 
-# ==============================
-# HOME ROUTER
-# ==============================
-# def home(request):
-#     if not request.user.is_authenticated:
-#         return render(request, "core/home.html")
-
-#     role = request.user.role
-
-#     if role == "patient":
-#         return redirect("/dashboard/patient/")
-
-#     if role == "doctor":
-#         from doctors.models import Doctor
-#         if Doctor.objects.filter(user=request.user).exists():
-#             return redirect("/dashboard/doctor/")
-#         return render(request, "errors/no_doctor_profile.html", status=403)
-
-#     if role == "receptionist":
-#         return redirect("/dashboard/receptionist/walkin/")
-
-#     if role == "hospital_admin":
-#         return redirect("/dashboard/hospital/")
-
-#     return redirect("/logout/")
-
-# Serve media files in development
-# ==============================
-# ROOT URLS
-# ==============================
 urlpatterns = [
 
     # Landing Page
@@ -93,6 +65,7 @@ urlpatterns = [
 
     # Dashboards
     path("dashboard/", include("dashboard.urls")),
+    path("accounts/", include("django.contrib.auth.urls")),
 
     # APIs
     path("api/token_queue/", include("token_queue.urls")),
@@ -102,6 +75,9 @@ urlpatterns = [
 
     # Analytics
     path("analytics/", include("analytics.urls")),
+
+    # direct track the token 
+    path("track/<int:token_id>/", track_token_view),
 ]
 
 # Serve media files in development

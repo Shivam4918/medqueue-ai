@@ -1,3 +1,5 @@
+#hospitals/urls.py
+
 from django.urls import path
 from .views import (
     nearby_hospitals, 
@@ -10,7 +12,10 @@ from .views import (
     disable_doctor,
     hospital_staff,
     add_receptionist,
-    disable_receptionist
+    hospital_queue_monitor,
+    disable_receptionist,
+    hospital_analytics,
+    hospital_profile
 )
 
 urlpatterns = [
@@ -29,7 +34,24 @@ urlpatterns = [
     path("staff/", hospital_staff, name="hospital_staff"),
     path("staff/add/", add_receptionist, name="add_receptionist"),
     path("staff/<int:user_id>/disable/", disable_receptionist, name="disable_receptionist"),
+    path(
+    "queue-monitor/",
+        hospital_queue_monitor,
+        name="hospital_queue_monitor"
+    ),
+
+    path(
+        "analytics/",
+        hospital_analytics,
+        name="hospital_analytics"
+    ),
     
+    path(
+        "profile/",
+        hospital_profile,
+        name="hospital_profile"
+    ),
+
     # doctor management
     path("doctors/", hospital_doctors, name="hospital_doctors"),
     path("doctors/add/", add_doctor, name="add_doctor"),

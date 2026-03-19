@@ -1,3 +1,5 @@
+<!-- templates/receptionist/dashboard.html -->
+
 {% extends "receptionist/base.html" %}
 
 {% block page_title %}
@@ -21,59 +23,39 @@ Receptionist Dashboard
 
     <div class="grid grid-cols-4 gap-6">
 
-        <div class="bg-white p-6 rounded-xl shadow">
-
-            <p class="text-sm text-gray-500">
-                Doctors Available
-            </p>
-
-            <p class="text-3xl font-bold text-[#1E3A8A]">
+        <!-- Doctors -->
+        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-sm text-gray-500">Doctors Available</p>
+            <p class="text-3xl font-bold text-blue-600 mt-2">
                 {{ total_doctors }}
             </p>
-
         </div>
 
-
-        <div class="bg-white p-6 rounded-xl shadow">
-
-            <p class="text-sm text-gray-500">
-                Waiting Patients
-            </p>
-
-            <p class="text-3xl font-bold text-orange-500">
+        <!-- Waiting -->
+        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-sm text-gray-500">Waiting Patients</p>
+            <p class="text-3xl font-bold text-yellow-500 mt-2">
                 {{ waiting_tokens }}
             </p>
-
         </div>
 
-
-        <div class="bg-white p-6 rounded-xl shadow">
-
-            <p class="text-sm text-gray-500">
-                In Service
-            </p>
-
-            <p class="text-3xl font-bold text-green-600">
+        <!-- In Service -->
+        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-sm text-gray-500">In Service</p>
+            <p class="text-3xl font-bold text-blue-500 mt-2">
                 {{ in_service_tokens }}
             </p>
-
         </div>
 
-
-        <div class="bg-white p-6 rounded-xl shadow">
-
-            <p class="text-sm text-gray-500">
-                Completed Today
-            </p>
-
-            <p class="text-3xl font-bold">
+        <!-- Completed -->
+        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-sm text-gray-500">Completed Today</p>
+            <p class="text-3xl font-bold text-green-600 mt-2">
                 {{ completed_tokens }}
             </p>
-
         </div>
 
     </div>
-
 
     <!-- QUICK ACTIONS -->
 
@@ -85,19 +67,129 @@ Receptionist Dashboard
 
         <div class="grid grid-cols-3 gap-6">
 
-            <a href="#" class="bg-[#1E3A8A] text-white p-6 rounded-xl text-center">
+            <a href="{% url 'dashboard:receptionist_walkin' %}"
+                class="bg-[#1E3A8A] text-white p-6 rounded-xl text-center hover:bg-[#1E3A8A] hover:scale-[1.02] transition">
                 Create Walk-in Token
             </a>
 
-            <a href="#" class="bg-[#0F766E] text-white p-6 rounded-xl text-center">
+            <a href="{% url 'dashboard:scan_qr_page' %}"
+                class="bg-[#0F766E] text-white p-6 rounded-xl text-center hover:bg-[#0d5f57] hover:scale-[1.02] transition">
                 Scan Patient QR
             </a>
 
-            <a href="#" class="bg-orange-500 text-white p-6 rounded-xl text-center">
+            <a href="{% url 'dashboard:receptionist_queue' %}"
+                class="bg-orange-500 text-white p-6 rounded-xl text-center hover:bg-orange-500 hover:scale-[1.02] transition">
                 View Live Queue
             </a>
 
         </div>
+
+    </div>
+
+    {% if next_tokens|length > 0 %}
+    <div class="bg-white border border-green-200 p-6 rounded-xl shadow-sm mt-6">
+
+        <div class="flex justify-between items-center mb-3">
+            {% if token.status == "waiting" and forloop.first %}
+            <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                Next
+            </span>
+            {% elif token.status == "in_service" %}
+            <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                Serving
+            </span>
+            {% else %}
+            <span class="text-xs text-gray-400">
+                Waiting
+            </span>
+            {% endif %}
+
+            {% if next_tokens.0.status == "waiting" %}
+            <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                Ready
+            </span>
+            {% elif next_tokens.0.status == "in_service" %}
+            <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                In Service
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center">
+
+            <!-- LEFT INFO -->
+            <div>
+                <p class="text-xl font-semibold text-gray-900">
+                    {{ next_tokens.0.patient }}
+                </p>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Token {{ next_tokens.0.display_token }} • {{ next_tokens.0.doctor.name }}
+                </p>
+            </div>
+
+            <!-- RIGHT STATUS -->
+            <div class="text-right">
+                <p class="text-xs text-gray-400">Queue Status</p>
+                <p class="text-sm font-medium text-green-600">
+                    Next in Line
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+    <div class="bg-white p-6 rounded-xl shadow mt-6">
+
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold text-lg">Live Queue</h3>
+
+            <span class="text-sm text-gray-500">
+                {{ next_tokens|length }} patients waiting
+            </span>
+        </div>
+
+        {% for token in next_tokens|slice:":5" %}
+        <div class="flex justify-between items-center p-3 rounded-lg mb-2 
+                {% if forloop.first %} bg-green-50 border border-green-200 {% else %} bg-gray-50 {% endif %}">
+
+            <div class="flex items-center gap-3">
+
+                <!-- TOKEN -->
+                <div
+                    class="w-10 h-10 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full font-bold">
+                    {{ token.display_token }}
+                </div>
+
+                <!-- INFO -->
+                <div>
+                    <p class="font-medium">
+                        {{ token.patient.user.first_name }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                        {{ token.doctor.name }}
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+            {% if forloop.first %}
+            <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                Next
+            </span>
+            {% else %}
+            <span class="text-xs text-gray-400">
+                Waiting
+            </span>
+            {% endif %}
+
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-sm">No patients in queue</p>
+        {% endfor %}
 
     </div>
 

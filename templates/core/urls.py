@@ -1,3 +1,5 @@
+# templates/core/urls.py
+
 from django.urls import path
 from .admin_views import superadmin_dashboard
 

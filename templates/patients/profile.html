@@ -1,3 +1,5 @@
+<!-- templates/patients/profile.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +8,7 @@
     <title>Profile | MedQueue AI</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -28,39 +30,57 @@
 
         <nav class="space-y-3">
 
-            <a href="{% url 'dashboard:patient_dashboard' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:patient_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 bg-white/20 rounded-lg">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 Dashboard
             </a>
 
-            <a href="{% url 'dashboard:queue_live_view' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:queue_live_view' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="activity" class="w-5 h-5"></i>
                 Queue Live View
             </a>
 
-            <a href="{% url 'dashboard:patient_tokens' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:patient_tokens' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="ticket" class="w-5 h-5"></i>
                 My Tokens
             </a>
 
-            <a href="{% url 'dashboard:book_token' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:book_token' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 Book Token
             </a>
 
-            <a href="{% url 'dashboard:visit_history' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:visit_history' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="history" class="w-5 h-5"></i>
                 Visit History
             </a>
 
-            <a href="{% url 'dashboard:nearby_hospitals' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:nearby_hospitals' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="hospital" class="w-5 h-5"></i>
                 Nearby Hospitals
             </a>
 
-            <a href="{% url 'users:patient_notifications' %}" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'users:patient_notifications' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="bell" class="w-5 h-5"></i>
                 Notifications
             </a>
 
-            <a class="block px-4 py-3 bg-white/20 rounded-lg">
+            <a href="{% url 'dashboard:profile' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="user" class="w-5 h-5"></i>
                 Profile
             </a>
 
-            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
+            <button onclick="openLogoutModal()"
+                class="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
                 Logout
             </button>
 
@@ -84,7 +104,7 @@
 
                     <a href="{% url 'users:patient_notifications' %}" class="text-xl">
 
-                        🔔
+                        <i data-lucide="bell" class="w-5 h-5"></i>
 
                         <span id="notif-count"
                             class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 rounded-full hidden">
@@ -132,7 +152,7 @@
                         </a>
 
                         <a href="#" class="block px-4 py-3 hover:bg-gray-100">
-                            🔔 Notifications
+                            <i data-lucide="bell" class="w-5 h-5"></i> Notifications
                         </a>
 
                         <hr>
@@ -641,6 +661,8 @@
         loadNotificationCount()
 
         setInterval(loadNotificationCount, 5000)
+
+        lucide.createIcons();
 
     </script>
 

@@ -1,0 +1,328 @@
+<!-- templates/hospitals/profile.html -->
+
+{% extends "hospitals/base.html" %}
+
+{% block page_title %}
+Admin Profile
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <h2 class="text-2xl font-semibold">
+        Hospital Admin Profile
+    </h2>
+
+    <!-- PROFILE SECTION -->
+    {% if messages %}
+    <div id="alert-container" class="fixed top-5 right-5 z-50 space-y-3">
+
+        {% for message in messages %}
+
+        <div class="alert-message px-5 py-3 rounded-lg shadow-lg flex items-center gap-3
+    {% if message.tags == 'success' %}bg-green-500 text-white
+    {% elif message.tags == 'error' %}bg-red-500 text-white
+    {% elif message.tags == 'warning' %}bg-yellow-500 text-white
+    {% else %}bg-blue-500 text-white{% endif %}">
+
+            {{ message }}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <form method="POST" enctype="multipart/form-data">
+
+            {% csrf_token %} <input type="hidden" name="action" value="update_profile">
+
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <!-- PROFILE PHOTO -->
+
+                <div class="flex flex-col items-center">
+
+                    <label for="avatarInput" class="cursor-pointer group">
+
+                        {% if hospital.profile_picture %}
+
+                        <img id="profilePreview" src="{{ hospital.profile_picture.url }}"
+                            class="w-40 h-40 rounded-full object-cover border group-hover:opacity-80 transition">
+
+                        {% else %}
+
+                        <div id="profilePreview"
+                            class="w-40 h-40 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-500 group-hover:bg-gray-300 transition">
+
+                            {{ request.user.first_name|first }}
+
+                        </div>
+
+                        {% endif %}
+
+                    </label>
+
+                    <input id="avatarInput" type="file" name="avatar" accept="image/*" class="hidden"
+                        onchange="previewProfile(event)">
+
+                </div>
+
+                <!-- ADMIN INFO -->
+
+                <div class="md:col-span-2">
+
+                    <h3 class="text-lg font-semibold mb-4">
+                        Admin Information
+                    </h3>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+
+                        <div>
+
+                            <label class="text-sm text-gray-500">
+                                Full Name
+                            </label>
+
+                            <input type="text" name="name" value="{{ request.user.first_name }}"
+                                class="w-full border rounded-lg px-3 py-2 mt-1">
+
+                        </div>
+
+                        <div>
+
+                            <label class="text-sm text-gray-500">
+                                Email
+                            </label>
+
+                            <input type="email" value="{{ request.user.email }}" disabled
+                                class="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100 cursor-not-allowed">
+
+                        </div>
+
+                    </div>
+
+                    <button class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg">
+
+                        Update Profile
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <h3 class="text-lg font-semibold mb-4">
+            Change Password
+        </h3>
+
+        <form method="POST">
+
+            {% csrf_token %} <input type="hidden" name="action" value="change_password">
+
+            <div class="grid md:grid-cols-3 gap-6">
+
+                <div>
+
+                    <label class="text-sm text-gray-500">
+                        Current Password
+                    </label>
+
+                    <input type="password" name="current_password" class="w-full border rounded-lg px-3 py-2 mt-1">
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm text-gray-500">
+                        New Password
+                    </label>
+
+                    <input type="password" name="new_password" class="w-full border rounded-lg px-3 py-2 mt-1">
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm text-gray-500">
+                        Confirm Password
+                    </label>
+
+                    <input type="password" name="confirm_password" class="w-full border rounded-lg px-3 py-2 mt-1">
+
+                </div>
+
+            </div>
+
+            <button class="mt-4 bg-green-600 text-white px-5 py-2 rounded-lg">
+
+                Update Password
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- ACCOUNT OVERVIEW -->
+
+    <div class="bg-white rounded-xl shadow p-6">
+
+        <h3 class="text-lg font-semibold mb-4">
+            Account Overview
+        </h3>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Hospital Name
+                </p>
+
+                <p class="font-semibold">
+                    {{ hospital.name }}
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    City
+                </p>
+
+                <p class="font-semibold">
+                    {{ hospital.city }}
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Contact Phone
+                </p>
+
+                <p class="font-semibold">
+                    {{ hospital.contact_phone }}
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Account Created
+                </p>
+
+                <p class="font-semibold">
+                    {{ request.user.date_joined|date:"d M Y" }}
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Last Login
+                </p>
+
+                <p class="font-semibold">
+                    {{ request.user.last_login|date:"d M Y H:i" }}
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-sm text-gray-500">
+                    Account Status
+                </p>
+
+                <p class="text-green-600 font-semibold">
+                    Active
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    document.getElementById("avatarInput").addEventListener("change", function (e) {
+
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            let preview = document.getElementById("profilePreview");
+
+            // If preview is a DIV (initial state)
+            if (preview.tagName === "DIV") {
+
+                const img = document.createElement("img");
+
+                img.src = event.target.result;
+                img.id = "profilePreview";
+                img.className = "w-40 h-40 rounded-full object-cover border";
+
+                preview.replaceWith(img);
+
+            }
+            else {
+
+                // If preview already IMG
+                preview.src = event.target.result;
+
+            }
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const alerts = document.querySelectorAll(".alert-message");
+
+        alerts.forEach(alert => {
+
+            setTimeout(() => {
+
+                alert.style.transition = "opacity 0.5s ease";
+                alert.style.opacity = "0";
+
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+
+            }, 3000);
+
+        });
+
+    });
+
+</script>
+{% endblock %}

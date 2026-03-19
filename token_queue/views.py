@@ -1,12 +1,14 @@
 # token_queue/views.py
 from django.db import transaction
 from django.utils import timezone
-
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from django.shortcuts import render, get_object_or_404
 from users.permissions import IsReceptionist, IsDoctor
 from users.models import User
 
@@ -167,45 +169,51 @@ class WalkinTokenAPIView(APIView):
     permission_classes = [IsReceptionist]
 
     def post(self, request):
+
         serializer = WalkinTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        name = serializer.validated_data["name"]
+        mobile = serializer.validated_data["mobile"]
+        email = serializer.validated_data.get("email")
         doctor_id = serializer.validated_data["doctor_id"]
-        patient_name = serializer.validated_data["patient_name"].strip()
 
+        # ✅ GET DOCTOR
         try:
             doctor = Doctor.objects.get(pk=doctor_id)
         except Doctor.DoesNotExist:
-            return Response(
-                {"detail": "Doctor not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Doctor not found"}, status=404)
 
         hospital = doctor.hospital
 
-        # Create temporary user for walk-in patient
-        base_username = f"walkin_{timezone.now().strftime('%Y%m%d%H%M%S')}"
-        username = base_username
-        counter = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}_{counter}"
-            counter += 1
+        # ✅ USERNAME = EMAIL (fallback mobile)
+        username = email if email else mobile
 
-        user = User.objects.create_user(
+        # ✅ CREATE / GET USER
+        user, created = User.objects.get_or_create(
             username=username,
-            role="patient"
+            defaults={
+                "email": email or "",
+                "role": "patient"
+            }
         )
-        user.first_name = patient_name
-        user.set_unusable_password()
-        user.save()
 
-        # ✅ FIX: create Patient profile
-        patient = Patient.objects.create(
+        # ✅ SET DEFAULT PASSWORD (ONLY FIRST TIME)
+        if created:
+            user.set_password("Patient@123")
+            user.first_name = name
+            user.save()
+
+        # ✅ CREATE / GET PATIENT PROFILE
+        patient, _ = Patient.objects.get_or_create(
             user=user,
-            name=patient_name,
-            phone=""
+            defaults={
+                "name": name,
+                "phone": mobile
+            }
         )
 
+        # ✅ CREATE TOKEN
         token = create_token(
             patient=patient,
             doctor=doctor,
@@ -213,6 +221,7 @@ class WalkinTokenAPIView(APIView):
             priority=0
         )
 
+        # ✅ REALTIME
         broadcast_queue_update(
             doctor.id,
             {
@@ -220,24 +229,51 @@ class WalkinTokenAPIView(APIView):
                 "token_id": token.id,
                 "token_number": token.display_token,
                 "status": token.status,
-                "priority": token.priority
             }
         )
 
-
+        # ✅ WAIT TIME
         minutes, eta_dt = estimate_wait_for_token(
             doctor.id,
             token.token_number
         )
 
+        # ✅ SEND EMAIL
+        if email:
+
+            subject = "Your Token & Appointment - MedQueue AI"
+
+            html_content = render_to_string(
+                "emails/patient_token_email.html",
+                {
+                    "name": name,
+                    "token": token.display_token,
+                    "doctor": doctor.name,
+                    "hospital": hospital.name,
+                    "track_url": f"http://127.0.0.1:8000/track/{token.id}/",
+                    "email": email,
+                    "password": "Patient@123",
+                }
+            )
+
+            email_msg = EmailMultiAlternatives(
+                subject=subject,
+                body="Your token has been generated.",
+                from_email="noreply@medqueue.com",
+                to=[email],
+            )
+
+            email_msg.attach_alternative(html_content, "text/html")
+            email_msg.send()
+
         return Response({
             "token_id": token.id,
             "token_number": token.display_token,
-            "patient_username": user.username,
-            "patient_name": patient_name,
+            "username": username,
+            "default_password": "Patient@123",
             "estimated_wait_minutes": minutes,
             "eta": timezone.localtime(eta_dt).isoformat()
-        }, status=status.HTTP_201_CREATED)
+        }, status=201)
 
 
 # --------------------------------------------------
@@ -718,3 +754,51 @@ def book_token_view(request):
         return redirect("/dashboard/patient/")
 
     return redirect("/dashboard/patient/")
+
+# -------------------
+# token tracking page 
+# -------------------
+
+def track_token_view(request, token_id):
+
+    token = get_object_or_404(Token, id=token_id)
+
+    doctor = token.doctor
+
+    # 🟢 CURRENT SERVING TOKEN
+    current_token = Token.objects.filter(
+        doctor=doctor,
+        status="in_service"
+    ).order_by("token_number").first()
+
+    now_serving = current_token.display_token if current_token else "-"
+
+    # 🟡 PATIENT POSITION
+    if current_token:
+        current_number = current_token.token_number
+    else:
+        current_number = 1
+
+    if token.status == "waiting":
+        position = max(token.token_number - current_number + 1, 1)
+        patients_ahead = position - 1
+    else:
+        position = 0
+        patients_ahead = 0
+
+    # 🔵 ESTIMATED TIME (simple logic)
+    if current_token:
+        estimated_wait = patients_ahead * 8
+    else:
+        estimated_wait = 8
+
+    context = {
+        "token": token,
+        "doctor": doctor,
+        "now_serving": now_serving,
+        "position": position,
+        "patients_ahead": patients_ahead,
+        "estimated_wait": estimated_wait,
+    }
+
+    return render(request, "token_queue/track.html", context)

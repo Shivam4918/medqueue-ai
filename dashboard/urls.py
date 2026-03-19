@@ -16,15 +16,24 @@ from .views import (
 
     # Doctor
     doctor_dashboard,
-    doctor_queue_page,
     doctor_call_token,
     doctor_complete_token,
     doctor_skip_token,
+    doctor_call_next,
+    doctor_profile_view,
+    doctor_analytics,
+    doctor_patient_history,
+    doctor_queue_view,
+    doctor_toggle_queue,
+    doctor_delay_notification,
 
     # Receptionist
     receptionist_walkin_page,
     receptionist_queue_page,
-    receptionist_dashboard
+    receptionist_dashboard,
+    doctor_list_view,
+    scan_qr_page,
+    receptionist_profile,
 )
 
 app_name = "dashboard"
@@ -111,18 +120,16 @@ urlpatterns = [
     # 👨‍⚕️ DOCTOR (ROLE: doctor)
     # =====================================================
 
-    # Main doctor dashboard
     path(
         "doctor/",
         doctor_dashboard,
         name="doctor_dashboard",
     ),
 
-    # Legacy / queue page (kept for JS compatibility)
     path(
         "doctor/queue/",
-        doctor_queue_page,
-        name="doctor_queue",
+        doctor_queue_view,
+        name="doctor_queue"
     ),
 
     path(
@@ -141,6 +148,42 @@ urlpatterns = [
         "doctor/token/<int:token_id>/skip/",
         doctor_skip_token,
         name="doctor_skip_token"
+    ),
+
+    path(
+        "doctor/call-next/",
+        doctor_call_next,
+        name="doctor_call_next"
+    ),
+
+    path(
+        "doctor/profile/",
+        doctor_profile_view,
+        name="doctor_profile"
+    ),
+
+    path(
+        "doctor/analytics/",
+        doctor_analytics,
+        name="doctor_analytics"
+    ),
+
+    path(
+        "doctor/history/",
+        doctor_patient_history,
+        name="doctor_patient_history"
+    ),
+
+    path(
+        "doctor/toggle-queue/",
+        doctor_toggle_queue,
+        name="doctor_toggle_queue"
+    ),
+
+    path(
+        "doctor/delay-notification/",
+        doctor_delay_notification,
+        name="doctor_delay_notification"
     ),
 
     # =====================================================
@@ -163,5 +206,13 @@ urlpatterns = [
         "receptionist/",
         receptionist_dashboard,
         name="receptionist_dashboard"
+    ),
+    path("receptionist/doctors/", doctor_list_view, name="doctor_list"),
+    path("scan/", scan_qr_page, name="scan_qr_page"),
+    path(
+        "receptionist/profile/",
+        receptionist_profile,
+        name="receptionist_profile"
     )
+
 ]

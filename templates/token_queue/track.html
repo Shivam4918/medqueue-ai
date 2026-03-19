@@ -1,0 +1,124 @@
+<!-- templates/token_queue/track.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Track Token</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Auto Refresh -->
+    <meta http-equiv="refresh" content="6">
+
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-md">
+
+        <!-- CARD -->
+        <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="bg-[#1E3A8A] text-white text-center py-5">
+                <h1 class="text-xl font-semibold">
+                    MedQueue <span class="text-teal-300">AI</span>
+                </h1>
+                <p class="text-xs opacity-80">Live Token Status</p>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="p-6">
+
+                <!-- TOKEN -->
+                <div class="text-center mb-6">
+
+                    <p class="text-gray-500 text-sm">Your Token</p>
+
+                    <h2 class="text-5xl font-bold text-[#1E3A8A] mt-1">
+                        {{ token.display_token }}
+                    </h2>
+
+                </div>
+
+                <!-- STATUS -->
+                <div class="text-center mb-5">
+
+                    {% if token.status == "waiting" %}
+                    <span class="bg-yellow-100 text-yellow-700 px-4 py-1 rounded-full text-sm font-medium">
+                        Waiting
+                    </span>
+                    {% elif token.status == "in_service" %}
+                    <span class="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm font-medium">
+                        In Service
+                    </span>
+                    {% else %}
+                    <span class="bg-gray-200 text-gray-600 px-4 py-1 rounded-full text-sm font-medium">
+                        Completed
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <!-- DOCTOR -->
+                <div class="text-center mb-6 text-sm text-gray-600">
+                    Dr. <span class="font-semibold">{{ doctor.name }}</span>
+                </div>
+
+                <!-- STATS GRID -->
+                <div class="grid grid-cols-3 gap-3 text-center mb-6">
+
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Now Serving</p>
+                        <p class="text-lg font-bold">{{ now_serving }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Position</p>
+                        <p class="text-lg font-bold">{{ position }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Wait</p>
+                        <p class="text-lg font-bold text-indigo-600">
+                            {{ estimated_wait }}m
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- LIVE STATUS MESSAGE -->
+                <div class="text-center">
+
+                    {% if token.status == "waiting" %}
+                    <p class="text-yellow-600 text-sm">
+                        Please wait. You will be called shortly.
+                    </p>
+
+                    {% elif token.status == "in_service" %}
+                    <p class="text-green-600 font-semibold">
+                        Please proceed to the doctor now.
+                    </p>
+
+                    {% else %}
+                    <p class="text-gray-500 text-sm">
+                        Consultation completed.
+                    </p>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <p class="text-center text-xs text-gray-400 mt-4">
+            Powered by MedQueue AI
+        </p>
+
+    </div>
+
+</body>
+
+</html>

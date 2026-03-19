@@ -1,0 +1,241 @@
+<!-- templates/doctors/analytics.html -->
+
+{% extends "doctors/base.html" %}
+
+{% block header %}
+Doctor Analytics
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= KPI ================= -->
+<!-- ================= KPI ================= -->
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">Patients Today</p>
+        <p class="text-2xl font-semibold mt-1">{{ total_today }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">Completed</p>
+        <p class="text-2xl font-semibold mt-1 text-green-600">{{ completed }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">Waiting</p>
+        <p class="text-2xl font-semibold mt-1 text-yellow-500">{{ waiting }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">In Service</p>
+        <p class="text-2xl font-semibold mt-1 text-blue-600">{{ in_service }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">Avg Time</p>
+        <p class="text-2xl font-semibold mt-1 text-purple-600">
+            {% if avg_time %}
+            {{ avg_time }} min
+            {% else %}
+            --
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-4 border">
+        <p class="text-xs text-gray-500">Peak Hour</p>
+        <p class="text-2xl font-semibold mt-1 text-red-500">
+            {{ peak_hour|default:"--" }}
+        </p>
+    </div>
+
+</div>
+
+
+<!-- ================= CHARTS ================= -->
+<div class="grid md:grid-cols-2 gap-6 mb-6">
+
+    <!-- BAR CHART -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border h-[260px]">
+
+        <h2 class="text-sm font-semibold mb-2 text-gray-700">
+            Patient Flow
+        </h2>
+
+        <div class="h-[180px]">
+            <canvas id="barChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- DOUGHNUT -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border h-[260px] flex flex-col justify-center">
+
+        <h2 class="text-sm font-semibold mb-2 text-gray-700 text-center">
+            Distribution
+        </h2>
+
+        <div class="h-[180px] flex items-center justify-center">
+            <canvas id="doughnutChart" class="max-w-[220px]"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= LINE ================= -->
+<div class="bg-white rounded-xl shadow-sm p-5 border mb-6 h-[280px]">
+
+    <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">
+            Hourly Trend
+        </h2>
+        <span class="text-xs text-gray-400">Today</span>
+    </div>
+
+    <div class="h-[220px]">
+        <canvas id="lineChart"></canvas>
+    </div>
+
+</div>
+
+
+<!-- ================= RECENT ================= -->
+<div class="bg-white rounded-xl shadow-sm p-5 border">
+
+    <h2 class="text-sm font-semibold mb-4 text-gray-700">
+        Recent Patients
+    </h2>
+
+    <div class="divide-y">
+
+        {% for token in recent_tokens %}
+        <div class="flex justify-between items-center py-2 text-sm">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-semibold">
+                    {{ token.display_token }}
+                </div>
+
+                <span class="font-medium">
+                    Patient Token
+                </span>
+
+            </div>
+
+            <span class="
+        {% if token.status == 'completed' %}text-green-600
+        {% elif token.status == 'waiting' %}text-yellow-500
+        {% else %}text-blue-600{% endif %}
+    ">
+                {{ token.status }}
+            </span>
+
+        </div>
+        {% empty %}
+        <p class="text-gray-400 text-sm">No recent patients</p>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<!-- ================= CHART JS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    // BAR CHART
+    new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels: ["Completed", "Waiting", "In Service"],
+            datasets: [{
+                data: [{{ completed }}, {{ waiting }}, {{ in_service }}],
+        backgroundColor: ["#22c55e", "#eab308", "#3b82f6"],
+        borderRadius: 6,
+        barThickness: 40
+        }]
+    },
+        options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 5
+                }
+            }
+        }
+    }
+});
+
+
+    // DOUGHNUT CHART
+    new Chart(document.getElementById("doughnutChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Completed", "Waiting", "In Service"],
+            datasets: [{
+                data: [{{ completed }}, {{ waiting }}, {{ in_service }}],
+        backgroundColor: ["#22c55e", "#eab308", "#3b82f6"]
+        }]
+    },
+        options: {
+        maintainAspectRatio: false,
+        cutout: "70%", // 🔥 makes it smaller & cleaner
+        plugins: {
+            legend: {
+                position: "bottom",
+                labels: {
+                    boxWidth: 10,
+                    font: { size: 10 }
+                }
+            }
+        }
+    }
+});
+
+    // LINE
+    new Chart(document.getElementById("lineChart"), {
+        type: "line",
+        data: {
+            labels: {{ hours| safe }},
+        datasets: [{
+            data: {{ hourly_data| safe }},
+        borderColor: "#6366f1",
+        tension: 0.4,
+        fill: true,
+        backgroundColor: "rgba(99,102,241,0.08)",
+        pointRadius: 3
+        }]
+    },
+        options: {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+    // AUTO REFRESH
+    setInterval(() => {
+        location.reload();
+    }, 20000);
+
+</script>
+
+{% endblock %}

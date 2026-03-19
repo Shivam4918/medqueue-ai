@@ -181,3 +181,26 @@ class Token(models.Model):
 
     def __str__(self):
         return f"{self.prefix}-{self.token_number} ({self.doctor})"
+    
+    # ======================================================
+    # 📊 ACTIVITY LOG MODEL
+    # ======================================================
+
+class ActivityLog(models.Model):
+
+    token = models.ForeignKey(
+        "token_queue.Token",
+        on_delete=models.CASCADE,
+        related_name="activity_logs"
+    )
+
+    action = models.CharField(
+        max_length=50
+   )  # waiting / in_service / completed / skipped
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.token.display_token} - {self.action}"

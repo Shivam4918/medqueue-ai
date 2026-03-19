@@ -1,3 +1,5 @@
+# core/urls.py
+
 from django.urls import path
 # from .views import public_home
 from .admin_views import superadmin_dashboard

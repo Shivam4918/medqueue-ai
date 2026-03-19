@@ -18,6 +18,7 @@ from .views import (
     VerifyTokenAPIView,
     DoctorDelayAPIView,
     book_token_view,
+    track_token_view,
 )
 
 # Router for admin/receptionist/doctor CRUD in DRF UI
@@ -25,6 +26,9 @@ router = DefaultRouter()
 router.register("", TokenViewSet, basename="token")
 
 urlpatterns = [
+    # Walk-in token creation (receptionist only)
+    path("walkin/", WalkinTokenAPIView.as_view(), name="token-walkin"),
+
     # DRF browseable token list/manage
     path("", include(router.urls)),
 
@@ -36,8 +40,7 @@ urlpatterns = [
     path("patient/book/", book_token_view, name="book_token_view"),
 
 
-    # Walk-in token creation (receptionist only)
-    path("walkin/", WalkinTokenAPIView.as_view(), name="token-walkin"),
+    
 
     # Doctor queue — active tokens (waiting + in_service)
     path("doctors/<int:doctor_id>/queue/", DoctorQueueAPIView.as_view(), name="doctor-queue"),
@@ -54,5 +57,6 @@ urlpatterns = [
 
     path("tokens/verify/<int:token_id>/", VerifyTokenAPIView.as_view(), name="token-verify"),
     path("patient/cancel/", cancel_token, name="cancel_token"),
-
+    path("track/<int:token_id>/", track_token_view, name="track_token"),
 ]
+

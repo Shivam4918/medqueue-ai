@@ -30,5 +30,11 @@ class Hospital(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    profile_picture = models.ImageField(
+        upload_to="profiles/",
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return f"{self.name} — {self.city}"

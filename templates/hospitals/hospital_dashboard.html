@@ -1,3 +1,5 @@
+<!-- templates/hospitals/hospital_dashboard.html -->
+
 {% extends "hospitals/base.html" %}
 
 {% block page_title %}
@@ -6,58 +8,210 @@
 
 {% block content %}
 
-<div class="grid grid-cols-4 gap-6">
+<div class="space-y-8">
 
-    <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-sm text-gray-500">Total Doctors</p>
-        <p class="text-3xl font-bold text-[#1E3A8A]">{{ total_doctors }}</p>
-    </div>
+    <!-- HEADER -->
 
-    <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-sm text-gray-500">Waiting Patients</p>
-        <p class="text-3xl font-bold text-orange-500">{{ waiting_tokens }}</p>
-    </div>
-
-    <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-sm text-gray-500">In Service</p>
-        <p class="text-3xl font-bold text-green-600">{{ in_service_tokens }}</p>
-    </div>
-
-    <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-sm text-gray-500">Completed Today</p>
-        <p class="text-3xl font-bold">{{ completed_tokens }}</p>
-    </div>
-
-</div>
-
-
-<div class="bg-white p-6 rounded-xl shadow mt-8">
-
-    <h3 class="text-lg font-semibold mb-5">
-        Doctors in {{ hospital.name }}
-    </h3>
-
-    {% for doctor in doctors %}
-
-    <div class="flex justify-between border-b pb-3 mb-3">
+    <div class="flex justify-between items-center">
 
         <div>
-            <p class="font-semibold">Dr. {{ doctor.name }}</p>
-            <p class="text-sm text-gray-500">{{ doctor.speciality }}</p>
+            <h2 class="text-2xl font-semibold">
+                {{ hospital.name }} Dashboard
+            </h2>
+            <p class="text-gray-500 text-sm">
+                Hospital operations overview
+            </p>
         </div>
 
-        <div class="text-sm text-gray-500">
-            {{ doctor.opd_start }} - {{ doctor.opd_end }}
+        <div class="flex gap-3">
+
+            <a href="{% url 'add_doctor' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                Add Doctor
+            </a>
+
+            <a href="{% url 'hospital_queue_monitor' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                Queue Monitor
+            </a>
+
+            <a href="{% url 'hospital_analytics' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">
+                Analytics
+            </a>
         </div>
 
     </div>
 
-    {% empty %}
+    <!-- KPI CARDS -->
 
-    <p class="text-gray-500">No doctors available.</p>
+    <div class="grid md:grid-cols-5 gap-6">
 
-    {% endfor %}
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Total Doctors</p>
+            <p class="text-3xl font-bold text-[#1E3A8A]">{{ total_doctors }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Waiting Patients</p>
+            <p class="text-3xl font-bold text-orange-500">{{ waiting_tokens }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-sm text-gray-500">In Service</p>
+            <p class="text-3xl font-bold text-green-600">{{ in_service_tokens }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Completed Today</p>
+            <p class="text-3xl font-bold text-gray-900">{{ completed_tokens }}</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Queue Load</p>
+            <p class="text-3xl font-bold text-purple-600">
+                {{ waiting_tokens|add:in_service_tokens }}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- OPERATIONS CHART -->
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <h3 class="font-semibold mb-4">
+                Today's Queue Overview
+            </h3>
+
+            <div class="h-64">
+                <canvas id="queueChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-6">
+            <h3 class="font-semibold mb-4">
+                Doctor Distribution
+            </h3>
+
+            <div class="h-64">
+                <canvas id="doctorChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DOCTORS LIST -->
+
+    <div class="bg-white p-6 rounded-xl shadow">
+
+        <h3 class="text-lg font-semibold mb-5">
+            Doctors in {{ hospital.name }}
+        </h3>
+
+        {% for doctor in doctors %}
+
+        <div class="flex justify-between items-center border-b pb-3 mb-3">
+
+            <div>
+
+                <p class="font-semibold">
+                    Dr. {{ doctor.name }}
+                </p>
+
+                <p class="text-sm text-gray-500">
+                    {{ doctor.speciality }}
+                </p>
+
+            </div>
+
+            <div class="flex items-center gap-4">
+
+                <div class="text-sm text-gray-500">
+                    {{ doctor.opd_start }} - {{ doctor.opd_end }}
+                </div>
+
+                {% if doctor.is_active %} <span class="text-green-600 text-sm font-semibold">
+                    Active </span>
+                {% else %} <span class="text-red-500 text-sm font-semibold">
+                    Inactive </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <p class="text-gray-500">No doctors available.</p>
+
+        {% endfor %}
+
+    </div>
 
 </div>
+
+<!-- CHART JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    const queueChart = new Chart(
+        document.getElementById("queueChart"), {
+
+        type: "doughnut",
+
+        data: {
+            labels: ["Waiting", "In Service", "Completed"],
+            datasets: [{
+                data: [
+                    {{ waiting_tokens }},
+            {{ in_service_tokens }},
+                {{ completed_tokens }}
+            ],
+    backgroundColor: [
+        "#f97316",
+        "#22c55e",
+        "#3b82f6"
+    ]
+        }]
+    },
+
+    options: {
+        responsive: true,
+            maintainAspectRatio: false,
+                plugins: {
+            legend: {
+                position: "top"
+            }
+        }
+    }
+
+});
+
+
+    const doctorChart = new Chart(
+        document.getElementById("doctorChart"), {
+
+        type: "bar",
+
+        data: {
+            labels: ["Doctors"],
+            datasets: [{
+                label: "Total Doctors",
+                data: [{{ total_doctors }}],
+            backgroundColor: "#687FE5"
+        }]
+    },
+
+        options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+
+});
+
+</script>
 
 {% endblock %}

@@ -1,3 +1,5 @@
+# doctors/permissions.py
+
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class IsHospitalAdminOrSuperuser(BasePermission):

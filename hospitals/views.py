@@ -1,11 +1,14 @@
+#hospitals/views.py
+
 from rest_framework import viewsets
 from .models import Hospital
 from .serializers import HospitalSerializer
 from .permissions import IsHospitalAdminOrReadOnly
-
+from django.db.models.functions import ExtractHour
+from django.db.models import Count, Avg, F
 from doctors.models import Doctor
 from token_queue.models import Token
-
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
@@ -13,7 +16,7 @@ from notifications.email_service import send_hospital_admin_welcome_email
 from notifications.email_service import send_doctor_welcome_email
 from notifications.email_service import send_receptionist_welcome_email
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth.hashers import check_password, make_password
 class HospitalViewSet(viewsets.ModelViewSet):
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
@@ -168,9 +171,12 @@ def hospital_dashboard(request):
         status="in_service"
     ).count()
 
+    today = timezone.now().date()
+
     completed_tokens = Token.objects.filter(
         hospital=hospital,
-        status="completed"
+        status="completed",
+        updated_at__date=today
     ).count()
 
     context = {
@@ -395,3 +401,266 @@ def disable_receptionist(request, user_id):
     receptionist.save()
 
     return redirect("hospital_staff")
+
+@login_required
+def hospital_queue_monitor(request):
+
+    if request.user.role != "hospital_admin":
+        return render(request, "patients/not_allowed.html")
+
+    hospital = Hospital.objects.filter(admin=request.user).first()
+
+    if not hospital:
+        return render(request, "patients/not_allowed.html")
+
+    doctors = Doctor.objects.filter(
+        hospital=hospital,
+        is_active=True
+    )
+
+    queue_data = []
+
+    for doctor in doctors:
+
+        now_serving = Token.objects.filter(
+            doctor=doctor,
+            status="in_service"
+        ).order_by("token_number").first()
+
+        waiting_tokens = Token.objects.filter(
+            doctor=doctor,
+            status="waiting"
+        ).order_by("priority", "token_number")
+
+        next_tokens = waiting_tokens[:5]
+
+        queue_data.append({
+            "doctor": doctor,
+            "now_serving": now_serving,
+            "waiting_count": waiting_tokens.count(),
+            "next_tokens": next_tokens
+        })
+
+    context = {
+        "hospital": hospital,
+        "queue_data": queue_data
+    }
+
+    return render(
+        request,
+        "hospitals/queue_monitor.html",
+        context
+    )
+
+from django.utils import timezone
+from django.db.models import Count, Avg, F
+from token_queue.models import Token
+from doctors.models import Doctor
+
+
+@login_required
+def hospital_analytics(request):
+
+    if request.user.role != "hospital_admin":
+        return render(request, "patients/not_allowed.html")
+
+    hospital = Hospital.objects.filter(admin=request.user).first()
+
+    today = timezone.localdate()
+
+    tokens_today = Token.objects.filter(
+        hospital=hospital,
+        booked_at__date=today
+    )
+
+    total_tokens = tokens_today.count()
+
+    completed = tokens_today.filter(status="completed").count()
+
+    waiting = tokens_today.filter(status="waiting").count()
+
+    in_service = tokens_today.filter(status="in_service").count()
+
+    skipped = tokens_today.filter(status="skipped").count()
+
+    # =============================
+    # Average Waiting Time
+    # =============================
+
+    avg_wait = (
+        tokens_today
+        .exclude(called_at=None)
+        .annotate(wait_time=F("called_at") - F("booked_at"))
+        .aggregate(avg=Avg("wait_time"))
+    )
+
+    avg_wait_minutes = 0
+
+    if avg_wait["avg"]:
+        avg_wait_minutes = int(avg_wait["avg"].total_seconds() / 60)
+
+    # =============================
+    # Doctor Performance
+    # =============================
+
+    doctor_stats = (
+        Token.objects
+        .filter(hospital=hospital)
+        .values("doctor__name")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    doctor_labels = [d["doctor__name"] for d in doctor_stats]
+    doctor_values = [d["total"] for d in doctor_stats]
+
+    # =============================
+    # Hourly Patient Load
+    # =============================
+
+    hourly_data = (
+        Token.objects.filter(
+            hospital=hospital,
+            booked_at__date=today
+        )
+        .annotate(hour=ExtractHour("booked_at"))
+        .values("hour")
+        .annotate(count=Count("id"))
+        .order_by("hour")
+    )
+
+    hour_labels = [h["hour"] for h in hourly_data]
+    hour_values = [h["count"] for h in hourly_data]
+
+    # =============================
+    # Peak Hour
+    # =============================
+
+    peak_hour = None
+
+    if hourly_data:
+        peak = max(hourly_data, key=lambda x: x["count"])
+        peak_hour = peak["hour"]
+
+    context = {
+
+        "hospital": hospital,
+
+        "total_tokens": total_tokens,
+        "completed": completed,
+        "waiting": waiting,
+        "in_service": in_service,
+        "skipped": skipped,
+
+        "avg_wait": avg_wait_minutes,
+        "peak_hour": peak_hour,
+
+        "doctor_labels": doctor_labels,
+        "doctor_values": doctor_values,
+
+        "hour_labels": hour_labels,
+        "hour_values": hour_values,
+
+        "doctor_stats": doctor_stats
+    }
+
+    return render(
+        request,
+        "hospitals/analytics.html",
+        context
+    )
+
+@login_required
+def hospital_profile(request):
+
+    if request.user.role != "hospital_admin":
+        return render(request,"patients/not_allowed.html")
+
+    hospital = Hospital.objects.filter(admin=request.user).first()
+
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+
+        # -------------------------
+        # UPDATE PROFILE
+        # -------------------------
+        if action == "update_profile":
+
+            name = request.POST.get("name")
+
+            if name:
+                request.user.first_name = name
+                request.user.save()
+
+            if request.FILES.get("avatar"):
+                hospital.profile_picture = request.FILES["avatar"]
+                hospital.save()
+
+            messages.success(request, "Profile updated successfully")
+
+
+        # -------------------------
+        # CHANGE PASSWORD
+        # -------------------------
+        elif action == "change_password":
+
+            current = request.POST.get("current_password")
+            new = request.POST.get("new_password")
+            confirm = request.POST.get("confirm_password")
+
+            if not check_password(current, request.user.password):
+
+                messages.error(request, "Current password incorrect")
+                return redirect("hospital_profile")
+
+            elif new != confirm:
+
+                messages.error(request, "Passwords do not match")
+                return redirect("hospital_profile")
+
+            elif len(new) < 8:
+
+                messages.error(request, "Password must be at least 8 characters")
+                return redirect("hospital_profile")
+
+            else:
+
+                request.user.set_password(new)
+                request.user.save()
+
+                messages.success(request, "Password updated successfully")
+
+                # keep user logged in after password change
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+
+                return redirect("hospital_profile")
+
+
+        # -------------------------
+        # UPDATE HOSPITAL SETTINGS
+        # -------------------------
+        elif action == "hospital_settings":
+
+            hospital.token_limit = request.POST.get("token_limit")
+            hospital.opd_start = request.POST.get("opd_start")
+            hospital.opd_end = request.POST.get("opd_end")
+
+            hospital.save()
+
+            messages.success(request,"Hospital settings updated")
+
+
+        return redirect("hospital_profile")
+
+
+    context = {
+        "hospital": hospital
+    }
+
+    return render(
+        request,
+        "hospitals/profile.html",
+        context
+    )

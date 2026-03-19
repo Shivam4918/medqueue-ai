@@ -1,3 +1,5 @@
+#users/decorators.py
+
 from functools import wraps
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login

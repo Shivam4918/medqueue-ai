@@ -1,0 +1,231 @@
+
+<!-- templates/receptionist/doctor_list.html -->
+
+{% extends "receptionist/base.html" %}
+
+{% block content %}
+
+<div class="p-6">
+
+    <!-- HEADER -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+            Doctor Management
+        </h2>
+        <p class="text-gray-500 text-sm">
+            View and manage all doctors in your hospital
+        </p>
+    </div>
+
+    <!-- SEARCH + FILTER -->
+    <div class="mb-6 flex flex-col md:flex-row items-center gap-4">
+
+        <!-- 🔍 SEARCH BAR -->
+        <div class="w-full md:w-1/2">
+            <input type="text" id="doctorSearch" placeholder="Search doctor..." class="w-full px-5 py-3 rounded-xl 
+               bg-white/70 backdrop-blur-md 
+               border border-gray-200 
+               shadow-sm
+               focus:ring-2 focus:ring-blue-500 
+               focus:border-blue-500 
+               outline-none transition-all">
+        </div>
+
+        <!-- 🎯 FILTER DROPDOWN -->
+        <div class="relative w-full md:w-48">
+
+            <select id="availabilityFilter" class="w-full appearance-none px-4 py-3 rounded-xl border border-gray-200 shadow-sm 
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                   outline-none bg-white pr-10 cursor-pointer">
+
+                <option value="all">All Doctors</option>
+                <option value="available">🟢 Available</option>
+                <option value="paused">⏸ Paused</option>
+                <option value="offline">🔴 Offline</option>
+
+            </select>
+
+            <!-- Custom arrow -->
+            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                ▼
+            </span>
+
+        </div>
+
+    </div>
+    <p id="searchInfo" class="text-sm text-gray-400 mb-4 hidden">
+        🔎 Searching...
+    </p>
+
+    <!-- DOCTOR GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+        {% for doctor in doctors %}
+
+        <div class="doctor-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 transition hover:shadow-xl hover:-translate-y-1"
+            data-name="{{ doctor.name|lower }}" data-speciality="{{ doctor.speciality|default:''|lower }}"
+            data-status="{% if doctor.is_active %}available{% elif doctor.is_paused %}paused{% else %}offline{% endif %}"
+            <!-- TOP SECTION -->
+            <div class="flex items-center gap-4">
+
+                <!-- PROFILE -->
+                <div
+                    class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                    {{ doctor.name|slice:":1" }}
+                </div>
+
+                <!-- INFO -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        Dr. {{ doctor.name }}
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                        {{ doctor.speciality|default:"General Physician" }}
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+            <div class="mt-4 flex items-center justify-between">
+
+                {% if doctor.is_active %}
+                <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                    🟢 Available
+                </span>
+
+                {% elif doctor.is_paused %}
+                <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
+                    ⏸ Paused
+                </span>
+
+                {% else %}
+                <span class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                    🔴 Offline
+                </span>
+                {% endif %}
+
+                <span class="text-xs text-gray-500">
+                    OPD: {{ doctor.opd_start }} - {{ doctor.opd_end }}
+                </span>
+
+            </div>
+
+            <!-- QUEUE INFO -->
+            <div class="mt-4 bg-gray-50 rounded-xl p-3">
+
+                <p class="text-sm text-gray-600">
+                    Queue Status
+                </p>
+
+                <div class="flex justify-between mt-2 text-sm font-medium">
+
+                    <span>
+                        Waiting:
+                        <span class="text-yellow-600">
+                            {{ doctor.waiting_count|default:"0" }}
+                        </span>
+                    </span>
+
+                    <span>
+                        Serving:
+                        <span class="text-blue-600">
+                            {{ doctor.serving_token|default:"-" }}
+                        </span>
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="mt-5 flex gap-3">
+
+                {% if doctor.is_active %}
+
+                <a href="/dashboard/doctor/{{ doctor.id }}/queue/"
+                    class="flex-1 text-center bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                    View Queue
+                </a>
+
+                {% else %}
+
+                <button class="flex-1 text-center bg-gray-400 text-white py-2 rounded-lg text-sm cursor-not-allowed">
+                    Not Available
+                </button>
+
+                {% endif %}
+
+                <a href="#" class="flex-1 text-center border border-gray-300 py-2 rounded-lg text-sm hover:bg-gray-100">
+                    Profile
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<!-- 🔥 SMART SEARCH SCRIPT -->
+<script>
+
+    let debounceTimer;
+
+    function filterDoctors() {
+
+        const searchValue = document.getElementById("doctorSearch").value.toLowerCase();
+        const statusValue = document.getElementById("availabilityFilter").value;
+
+        const cards = document.querySelectorAll(".doctor-card");
+
+        cards.forEach(card => {
+
+            const name = card.dataset.name;
+            const speciality = card.dataset.speciality;
+            const status = card.dataset.status;
+
+            const matchesSearch =
+                name.includes(searchValue) ||
+                speciality.includes(searchValue);
+
+            const matchesStatus =
+                statusValue === "all" || status === statusValue;
+
+            if (matchesSearch && matchesStatus) {
+                card.style.display = "block";
+            } else {
+                card.style.display = "none";
+            }
+
+        });
+    }
+
+    // ✅ Debounce typing
+    document.getElementById("doctorSearch").addEventListener("keyup", function () {
+
+        // 🔎 Show searching text
+        document.getElementById("searchInfo").classList.remove("hidden");
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+
+            filterDoctors();
+
+            // ✅ Hide after filtering
+            document.getElementById("searchInfo").classList.add("hidden");
+
+        }, 300);
+
+    });
+
+    // ✅ Filter dropdown
+    document.getElementById("availabilityFilter").addEventListener("change", filterDoctors);
+
+</script>
+
+{% endblock %}

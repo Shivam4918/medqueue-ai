@@ -1,3 +1,5 @@
+<!-- templates/hospitals/base.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,7 +9,7 @@
     <title>Hospital Admin | MedQueue AI</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
@@ -26,29 +28,47 @@
 
         <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
 
-        <nav class="space-y-3">
+        <nav class="space-y-2">
 
-            <a href="/hospitals/dashboard/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/hospitals/dashboard/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 Hospital Dashboard
             </a>
 
-            <a href="/hospitals/doctors/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/hospitals/doctors/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="stethoscope" class="w-5 h-5"></i>
                 Doctors
             </a>
 
-            <a href="#" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/hospitals/queue-monitor/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="activity" class="w-5 h-5"></i>
                 Queue Monitor
             </a>
 
-            <a href="/hospitals/staff/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/hospitals/staff/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="users" class="w-5 h-5"></i>
                 Receptionists
             </a>
 
-            <a href="#" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/hospitals/analytics/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                 Analytics
             </a>
 
-            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'hospital_profile' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="building" class="w-5 h-5"></i>
+                Profile
+            </a>
+
+            <button onclick="openLogoutModal()"
+                class="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
                 Logout
             </button>
 
@@ -68,13 +88,22 @@
 
             <div class="flex items-center gap-3">
 
-                <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
-                    {{ request.user.username|first|upper }}
+                {% if hospital.profile_picture %}
+
+                <img src="{{ hospital.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border">
+
+                {% else %}
+
+                <div
+                    class="w-10 h-10 bg-blue-800 text-white rounded-full flex items-center justify-center font-semibold">
+                    {{ request.user.first_name|first }}
                 </div>
 
+                {% endif %}
+
                 <div>
-                    <p class="text-sm font-semibold">{{ request.user.username }}</p>
-                    <p class="text-xs text-gray-500">Hospital Admin</p>
+                    <p class="font-semibold">{{ request.user.email }}</p>
+                    <p class="text-sm text-gray-500">Hospital Admin</p>
                 </div>
 
             </div>
@@ -137,6 +166,17 @@
             document.getElementById("logoutModal").classList.add("hidden")
         }
 
+        const currentPath = window.location.pathname;
+
+        document.querySelectorAll("aside nav a").forEach(link => {
+            if (link.getAttribute("href") === currentPath) {
+                link.classList.add("bg-white/20");
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            lucide.createIcons();
+        });
     </script>
 
 </body>

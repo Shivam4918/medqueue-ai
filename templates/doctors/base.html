@@ -1,3 +1,5 @@
+<!-- templates/doctors/base.html -->
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -9,7 +11,7 @@
     <title>{% block page_title %}Doctor Dashboard | MedQueue AI{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- SAME FONT AS HOSPITAL DASHBOARD -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -19,41 +21,53 @@
             background: #F9FAFB;
         }
     </style>
-   
+
 
 </head>
 
 <body class="flex">
 
-  
+
     <!-- SIDEBAR -->
     <aside class="w-64 bg-[#1E3A8A] min-h-screen text-white p-6">
 
         <h2 class="text-2xl font-bold mb-10">MedQueue AI</h2>
 
-        <nav class="space-y-3">
+        <nav class="space-y-2">
 
-            <a href="/dashboard/doctor/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="/dashboard/doctor/"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 Doctor Dashboard
             </a>
 
-            <a href="/dashboard/doctor/queue/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:doctor_queue' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="list-ordered" class="w-5 h-5"></i>
                 My Queue
             </a>
 
-            <a href="/dashboard/doctor/history/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:doctor_patient_history' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                 Patient History
             </a>
 
-            <a href="/dashboard/doctor/analytics/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:doctor_analytics' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                 Analytics
             </a>
 
-            <a href="/dashboard/doctor/profile/" class="block px-4 py-3 hover:bg-white/10 rounded-lg">
+            <a href="{% url 'dashboard:doctor_profile' %}"
+                class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="user" class="w-5 h-5"></i>
                 Profile
             </a>
 
-            <button onclick="openLogoutModal()" class="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg">
+            <button onclick="openLogoutModal()"
+                class="flex items-center gap-3 w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg transition">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
                 Logout
             </button>
 
@@ -75,9 +89,14 @@
             <div class="flex items-center gap-3">
 
                 <!-- USER ICON -->
+                {% if request.user.doctor_profile and request.user.doctor_profile.profile_picture %}
+                <img src="{{ request.user.doctor_profile.profile_picture.url }}"
+                    class="w-8 h-8 rounded-full object-cover border">
+                {% else %}
                 <div class="w-8 h-8 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full">
                     {{ request.user.username|first|upper }}
                 </div>
+                {% endif %}
 
                 <!-- USER INFO -->
                 <div>
@@ -92,9 +111,60 @@
 
         <!-- PAGE CONTENT -->
         <div class="p-8">
+            {% if messages %}
+            <div id="alert-container" class="fixed top-5 right-5 z-50 space-y-3">
 
+                {% for message in messages %}
+
+                <div class="alert-message px-5 py-3 rounded-lg shadow-lg flex items-center gap-3
+    {% if message.tags == 'success' %}bg-green-500 text-white
+    {% elif message.tags == 'error' %}bg-red-500 text-white
+    {% elif message.tags == 'warning' %}bg-yellow-500 text-white
+    {% else %}bg-blue-500 text-white{% endif %}">
+
+                    {{ message }}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+            {% endif %}
             {% block content %}
             {% endblock %}
+
+        </div>
+
+    </div>
+    <!-- LOGOUT MODAL -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+        <div class="bg-white rounded-xl shadow-lg w-96 p-6 text-center">
+
+            <h2 class="text-lg font-semibold mb-2">
+                Confirm Logout
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                Are you sure you want to logout from MedQueue?
+            </p>
+
+            <div class="flex justify-center gap-4">
+
+                <button onclick="closeLogoutModal()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                    Cancel
+                </button>
+
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                        Logout
+                    </button>
+
+                </form>
+
+            </div>
 
         </div>
 
@@ -112,8 +182,41 @@
             document.getElementById("logoutModal").classList.add("hidden")
         }
 
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const alerts = document.querySelectorAll(".alert-message");
+
+            alerts.forEach(alert => {
+
+                setTimeout(() => {
+
+                    alert.style.transition = "opacity 0.5s ease";
+                    alert.style.opacity = "0";
+
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+
+                }, 3000);
+
+            });
+
+        });
+
+        const currentPath = window.location.pathname;
+
+        document.querySelectorAll("aside nav a").forEach(link => {
+            if (link.getAttribute("href") === currentPath) {
+                link.classList.add("bg-white/20");
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            lucide.createIcons();
+        });
+
     </script>
-   
+
 
 </body>
 

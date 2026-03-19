@@ -1,0 +1,246 @@
+<!-- templates/receptionist/queue.html -->
+
+{% extends "receptionist/base.html" %}
+
+{% block content %}
+
+<div class="space-y-8">
+
+    <!-- HEADER -->
+    <div>
+        <h2 class="text-2xl font-bold">Live Queue Control</h2>
+        <p class="text-gray-500 text-sm">Manage patient flow in real-time</p>
+    </div>
+
+    <!-- NOW SERVING -->
+    <div class="bg-blue-50 border border-blue-200 p-6 rounded-xl">
+
+        <h3 class="text-sm text-blue-600 font-medium mb-2">
+            Now Serving
+        </h3>
+
+        {% if tokens %}
+        {% for t in tokens %}
+        {% if t.status == "in_service" %}
+        <div class="flex justify-between items-center">
+
+            <div>
+                <p class="text-3xl font-bold text-blue-700">
+                    {{ t.display_token }}
+                </p>
+                <p class="text-sm text-gray-600">
+                    {{ t.patient.name }} • {{ t.doctor.name }}
+                </p>
+            </div>
+
+            <button onclick="completeToken({{ t.id }})" class="bg-green-600 text-white px-4 py-2 rounded-lg">
+                Complete
+            </button>
+
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% else %}
+        <p class="text-gray-500">No active patient</p>
+        {% endif %}
+
+    </div>
+
+    <!-- NEXT PATIENT -->
+    <div class="bg-white rounded-2xl shadow-md p-6 mt-6">
+
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            Next in Queue
+        </h3>
+        <p class="text-sm text-gray-500 mb-3">
+            {{ next_tokens|length }} patients waiting
+        </p>
+
+        {% if next_tokens %}
+
+        <div class="space-y-4">
+
+            {% for token in next_tokens %}
+
+            <div
+                class="flex items-center justify-between bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-xl p-4 hover:shadow-md transition duration-200">
+
+                <!-- LEFT -->
+                <div class="flex items-center gap-4">
+
+                    <!-- TOKEN BADGE -->
+                    <div class="bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-lg text-lg">
+                        {{ token.display_token }}
+                    </div>
+
+                    <!-- PATIENT INFO -->
+                    <div>
+                        <p class="font-semibold text-gray-800">
+                            {{ token.patient.name }}
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Waiting for consultation
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="flex items-center gap-3">
+
+                    <!-- STATUS -->
+                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 text-xs font-medium rounded-full">
+                        Waiting
+                    </span>
+
+                    <!-- OPTIONAL QUICK ACTION -->
+                    {% if forloop.first %}
+                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        Next
+                    </span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <!-- EMPTY STATE -->
+        <div class="flex flex-col items-center justify-center py-10 text-center">
+
+            <div class="bg-gray-100 p-4 rounded-full mb-4 text-xl">
+                ⏳
+            </div>
+
+            <p class="text-gray-700 font-medium">
+                No patients in queue
+            </p>
+
+            <p class="text-sm text-gray-500 mt-1">
+                New tokens will appear here once registered
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- FULL QUEUE TABLE -->
+    <div class="bg-white p-6 rounded-xl shadow">
+
+        <h3 class="text-lg font-semibold mb-4">All Tokens</h3>
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-left border-collapse">
+
+                <thead>
+                    <tr class="border-b text-gray-600 text-sm">
+                        <th class="py-2">Token</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for token in tokens %}
+
+                    <tr class="border-b hover:bg-gray-50">
+
+                        <td class="py-3 font-semibold">
+                            {{ token.display_token }}
+                        </td>
+
+                        <td>{{ token.patient.name }}</td>
+                        <td>{{ token.doctor.name }}</td>
+
+                        <td>
+                            <span class="px-3 py-1 rounded-full text-xs
+                                {% if token.status == 'waiting' %}bg-yellow-100 text-yellow-700
+                                {% elif token.status == 'in_service' %}bg-blue-100 text-blue-700
+                                {% elif token.status == 'completed' %}bg-green-100 text-green-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+
+                                {{ token.status|title }}
+
+                            </span>
+                        </td>
+
+                        <td class="flex gap-2 py-2">
+
+                            <button onclick="callToken({{ token.id }})"
+                                class="bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                                Call
+                            </button>
+
+                            <button onclick="completeToken({{ token.id }})"
+                                class="bg-green-500 text-white px-2 py-1 rounded text-xs">
+                                Done
+                            </button>
+
+                            <button onclick="skipToken({{ token.id }})"
+                                class="bg-red-500 text-white px-2 py-1 rounded text-xs">
+                                Skip
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ACTION JS -->
+<script>
+
+    async function callToken(id) {
+        await fetch(`/api/token_queue/tokens/${id}/call/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        });
+        location.reload();
+    }
+
+    async function completeToken(id) {
+        await fetch(`/api/token_queue/tokens/${id}/complete/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        });
+        location.reload();
+    }
+
+    async function skipToken(id) {
+        await fetch(`/api/token_queue/tokens/${id}/skip/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        });
+        location.reload();
+    }
+
+</script>
+
+{% endblock %}

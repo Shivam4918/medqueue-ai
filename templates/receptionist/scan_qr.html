@@ -1,0 +1,200 @@
+<!-- templates/receptionist/scan_qr.html -->
+
+{% extends "receptionist/base.html" %}
+
+{% block page_title %}
+Scan QR / Find Token
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <!-- HEADER -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Scan QR / Search Token</h2>
+        <p class="text-gray-500 text-sm">Find patient details using QR or Token Number</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="flex gap-3 mb-6">
+        <button onclick="showTab('manual')" id="manualTab" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+            Manual Entry
+        </button>
+
+        <button onclick="showTab('qr')" id="qrTab" class="px-4 py-2 bg-gray-200 rounded-lg text-sm">
+            Scan QR
+        </button>
+    </div>
+
+    <!-- MANUAL SEARCH -->
+    <div id="manualSection" class="bg-white p-6 rounded-xl shadow">
+
+        <form method="GET" action="">
+            <div class="bg-white p-4 rounded-xl shadow flex gap-3 items-center">
+
+                <input type="text" name="token" placeholder="Enter Token (e.g. A-5)"
+                    class="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+
+                <input type="date" id="dateInput" name="date" class="px-4 py-2 border rounded-lg">
+
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Search
+                </button>
+
+            </div>
+        </form>
+
+    </div>
+
+    <!-- QR SCANNER -->
+    <div id="qrSection" class="hidden bg-white p-6 rounded-xl shadow">
+
+        <div class="text-center">
+            <div id="qr-reader" class="mx-auto w-80"></div>
+
+            <p class="text-sm text-gray-500 mt-3">
+                Scan patient QR code to fetch details
+            </p>
+        </div>
+
+    </div>
+    {% if error %}
+    <div class="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-4">
+        ❌ {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- RESULT -->
+    {% if token_data %}
+    <div class="bg-white p-6 rounded-2xl shadow border border-gray-100 mt-4 
+            transition hover:shadow-lg hover:scale-[1.01]">
+
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">
+                Patient Details
+            </h3>
+
+            {% if token_data.status == "in_service" %}
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
+                Now Serving
+            </span>
+            {% elif token_data.status == "waiting" %}
+            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs">
+                Waiting
+            </span>
+            {% elif token_data.status == "completed" %}
+            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">
+                Completed
+            </span>
+            {% elif token_data.status == "skipped" %}
+            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs">
+                Skipped
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+
+            <div>
+                <p class="text-sm text-gray-500">Token</p>
+                <p class="font-bold text-blue-600 text-lg">
+                    {{ token_data.display_token }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm text-gray-500">Patient</p>
+                <p class="font-semibold">
+                    {{ token_data.patient }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm text-gray-500">Doctor</p>
+                <p class="font-semibold">
+                    {{ token_data.doctor }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm text-gray-500">Queue Position</p>
+                <p class="font-bold text-lg">
+                    #{{ token_data.position }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm text-gray-500">Estimated Wait</p>
+                <p class="font-bold text-orange-500">
+                    {{ token_data.wait_time }} min
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- QR SCRIPT -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+
+    function showTab(type) {
+
+        document.getElementById("manualSection").classList.add("hidden");
+        document.getElementById("qrSection").classList.add("hidden");
+
+        document.getElementById("manualTab").classList.remove("bg-blue-600", "text-white");
+        document.getElementById("qrTab").classList.remove("bg-blue-600", "text-white");
+
+        if (type === "manual") {
+            document.getElementById("manualSection").classList.remove("hidden");
+            document.getElementById("manualTab").classList.add("bg-blue-600", "text-white");
+        } else {
+            document.getElementById("qrSection").classList.remove("hidden");
+            document.getElementById("qrTab").classList.add("bg-blue-600", "text-white");
+            startScanner();
+        }
+    }
+
+    function startScanner() {
+
+        const qr = new Html5Qrcode("qr-reader");
+
+        qr.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            qrCodeMessage => {
+
+                console.log("Scanned:", qrCodeMessage);
+
+                // redirect to search result
+                window.location.href = "{% url 'dashboard:scan_qr_page' %}?token=" + encodeURIComponent(qrCodeMessage);
+
+                qr.stop();
+            }
+        );
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const dateInput = document.getElementById("dateInput");
+
+        if (!dateInput.value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+    });
+
+</script>
+
+{% endblock %}

@@ -1,3 +1,5 @@
+#medqueue/settings.py
+
 """
 Django settings for medqueue project.
 

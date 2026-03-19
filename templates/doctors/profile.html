@@ -1,0 +1,238 @@
+<!-- templates/doctors/profile.html -->
+
+{% extends "doctors/base.html" %}
+
+{% block header %}
+Doctor Profile
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_profile">
+
+    <!-- ================= MAIN GRID ================= -->
+    <div class="grid grid-cols-3 gap-8 items-stretch">
+
+        <!-- LEFT PROFILE (MATCH HEIGHT) -->
+        <div class="bg-white rounded-xl shadow p-6 flex flex-col justify-between text-center">
+
+            <div>
+
+                <label for="profileUpload" class="cursor-pointer">
+
+                    {% if doctor.profile_picture %}
+                    <img src="{{ doctor.profile_picture.url }}"
+                        class="w-28 h-28 rounded-full object-cover mx-auto border" id="profilePreview">
+                    {% else %}
+                    <div id="profilePreview"
+                        class="w-28 h-28 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full text-4xl font-bold mx-auto">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    {% endif %}
+
+                </label>
+
+                <input type="file" name="profile_picture" id="profileUpload" class="hidden">
+
+                <h2 class="text-xl font-semibold mt-4">
+                    {{ doctor.name }}
+                </h2>
+
+                <p class="text-gray-500 text-sm">
+                    {{ doctor.speciality }}
+                </p>
+
+            </div>
+
+            <div class="border-t pt-4 space-y-3 text-sm text-gray-600">
+
+                <p>
+                    <span class="font-semibold">Hospital</span><br>
+                    {{ doctor.hospital.name }}
+                </p>
+
+                <p>
+                    <span class="font-semibold">Doctor ID</span><br>
+                    {{ doctor.id }}
+                </p>
+
+                <p>
+                    <span class="font-semibold">Email</span><br>
+                    {{ request.user.email }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT DOCTOR INFO -->
+        <div class="col-span-2 bg-white rounded-xl shadow p-8 flex flex-col justify-between">
+
+            <div>
+
+                <h2 class="text-lg font-semibold mb-6">
+                    Doctor Information
+                </h2>
+
+                <div class="grid grid-cols-2 gap-6">
+
+                    <div>
+                        <label class="text-sm text-gray-600">Doctor Name</label>
+                        <input type="text" name="name" value="{{ doctor.name }}"
+                            class="w-full mt-1 border rounded-lg px-4 py-2">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">Speciality</label>
+                        <input type="text" name="speciality" value="{{ doctor.speciality }}"
+                            class="w-full mt-1 border rounded-lg px-4 py-2">
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mt-6">
+
+                    <div>
+                        <label class="text-sm text-gray-600">OPD Start Time</label>
+                        <input type="time" name="opd_start" value="{{ doctor.opd_start|time:'H:i' }}"
+                            class="w-full mt-1 border rounded-lg px-4 py-2">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">OPD End Time</label>
+                        <input type="time" name="opd_end" value="{{ doctor.opd_end|time:'H:i' }}"
+                            class="w-full mt-1 border rounded-lg px-4 py-2">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button type="submit" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                Update Profile
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+<!-- ================= CHANGE PASSWORD ================= -->
+<div class="bg-white rounded-xl shadow p-8 mt-8">
+
+    <h2 class="text-lg font-semibold mb-6">
+        Change Password
+    </h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="grid grid-cols-3 gap-6">
+
+            <div>
+                <label class="text-sm text-gray-600">Current Password</label>
+                <input type="password" name="current_password" class="w-full mt-1 border rounded-lg px-4 py-2">
+            </div>
+
+            <div>
+                <label class="text-sm text-gray-600">New Password</label>
+                <input type="password" name="new_password" class="w-full mt-1 border rounded-lg px-4 py-2">
+            </div>
+
+            <div>
+                <label class="text-sm text-gray-600">Confirm Password</label>
+                <input type="password" name="confirm_password" class="w-full mt-1 border rounded-lg px-4 py-2">
+            </div>
+
+        </div>
+
+        <button type="submit" class="mt-6 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+            Update Password
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- ================= ACCOUNT OVERVIEW ================= -->
+<div class="bg-white rounded-xl shadow p-8 mt-8">
+
+    <h2 class="text-lg font-semibold mb-6">
+        Account Overview
+    </h2>
+
+    <div class="grid grid-cols-3 gap-6">
+
+        <div>
+            <p class="text-sm text-gray-500">Hospital Name</p>
+            <p class="font-semibold">{{ doctor.hospital.name }}</p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500">City</p>
+            <p class="font-semibold">{{ doctor.hospital.city }}</p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500">Contact Phone</p>
+            <p class="font-semibold">{{ doctor.hospital.contact_phone }}</p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500">Account Created</p>
+            <p class="font-semibold">
+                {{ request.user.date_joined|date:"d M Y" }}
+            </p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500">Last Login</p>
+            <p class="font-semibold">
+                {{ request.user.last_login|date:"d M Y H:i" }}
+            </p>
+        </div>
+
+        <div>
+            <p class="text-sm text-gray-500">Account Status</p>
+
+            {% if doctor.is_active %}
+            <p class="text-green-600 font-semibold">Active</p>
+            {% else %}
+            <p class="text-red-500 font-semibold">Inactive</p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- IMAGE PREVIEW -->
+<script>
+    document.getElementById("profileUpload").addEventListener("change", function (e) {
+
+        const file = e.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                document.getElementById("profilePreview").outerHTML =
+                    `<img src="${event.target.result}" class="w-28 h-28 rounded-full object-cover mx-auto border">`;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+    });
+</script>
+
+{% endblock %}
