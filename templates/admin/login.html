@@ -73,10 +73,10 @@
 
             {% endif %}
 
-            <form method="post" action="/admin/login/">
+            <form method="post" action="/accounts/login/">
 
                 {% csrf_token %}
-                <input type="hidden" name="next" value="/admin/dashboard/">
+                <input type="hidden" name="next" value="{% url 'dashboard:superadmin_dashboard' %}">
                 <div class="mb-4">
 
                     <label class="text-sm text-gray-600">

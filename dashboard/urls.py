@@ -3,6 +3,7 @@
 from django.urls import path
 from .views import queue_live_view,patient_tokens_view,book_token_view,visit_history_view,profile_view,nearby_hospitals_view
 
+
 from .views import (
     # Hospital admin / staff
     hospital_dashboard,
@@ -34,6 +35,19 @@ from .views import (
     doctor_list_view,
     scan_qr_page,
     receptionist_profile,
+
+    # superadmmin
+    super_admin_dashboard,
+    hospitals_list,
+    hospital_detail_view,
+    hospital_edit_view,
+    hospital_delete_view,
+    user_management,
+    delete_user,
+    toggle_user_status,
+    view_user_profile,
+    global_settings,
+    security_logs,
 )
 
 app_name = "dashboard"
@@ -213,6 +227,54 @@ urlpatterns = [
         "receptionist/profile/",
         receptionist_profile,
         name="receptionist_profile"
-    )
+    ),
 
+    #super_admin 
+
+    path(
+        "superadmin/dashboard/",
+        super_admin_dashboard,
+        name="superadmin_dashboard"
+    ),
+
+    path("superadmin/hospitals/", hospitals_list, name="hospitals_list"),
+    path("superadmin/hospitals/<int:id>/", hospital_detail_view, name="hospital_detail"),
+    path("superadmin/hospitals/<int:id>/edit/", hospital_edit_view, name="hospital_edit"),
+    path("superadmin/hospitals/<int:id>/delete/", hospital_delete_view, name="hospital_delete"),
+    path("superadmin/users/", user_management, name="user_management"),
+    path(
+        "superadmin/users/<int:id>/toggle/",
+        toggle_user_status,
+        name="toggle_user_status"
+    ),
+
+    path(
+        "superadmin/users/<int:id>/delete/",
+        delete_user,
+        name="delete_user"
+    ),
+
+    path(
+        "superadmin/users/<int:id>/view/",
+        view_user_profile,
+        name="view_user_profile"
+    ),
+
+    path(
+        "superadmin/users/<int:id>/delete/",
+        delete_user,
+        name="delete_user"
+    ),
+
+    path(
+        "superadmin/settings/",
+        global_settings,
+        name="global_settings"
+    ),
+
+    path(
+        "superadmin/security-logs/",
+        security_logs,
+        name="security_logs"
+    ),
 ]

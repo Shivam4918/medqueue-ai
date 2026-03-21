@@ -14,6 +14,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from token_queue.views import track_token_view
+from dashboard.views import super_admin_dashboard
 
 
 # ==============================
@@ -44,6 +45,9 @@ def manifest(request):
 
 urlpatterns = [
 
+     # ✅ YOUR CUSTOM ADMIN DASHBOARD (ADD THIS FIRST)
+    path("admin/dashboard/", super_admin_dashboard),
+
     # Landing Page
     path("", TemplateView.as_view(template_name="core/home.html"), name="landing"),
 
@@ -51,7 +55,7 @@ urlpatterns = [
     path("portal/", TemplateView.as_view(template_name="core/portal.html"), name="portal"),
 
     # Core custom routes (Super admin dashboard)
-    path("", include("core.urls")),
+    
 
     # Django admin (default)
     path("admin/", admin.site.urls),

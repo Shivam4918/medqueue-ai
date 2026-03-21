@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ hospital.name }} | Details | MedQueue AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .sidebar-item-active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 100%);
+            border-left: 4px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="flex min-h-screen">
+
+    <!-- ================= SIDEBAR (Matched with Dashboard) ================= -->
+    <aside class="w-72 bg-[#020617] text-slate-400 flex flex-col fixed h-full z-50">
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-10">
+                <div
+                    class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="activity" class="text-white w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">MedQueue <span class="text-blue-500">AI</span>
+                </h2>
+            </div>
+
+            <nav class="space-y-1">
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-4 px-4">Main Menu</p>
+
+                <a href="{% url 'dashboard:superadmin_dashboard' %}"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all group">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span class="font-medium">Overview</span>
+                </a>
+
+                <a href="/hospitals/create/"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span class="font-medium">Add Hospital</span>
+                </a>
+
+                <!-- ACTIVE STATE -->
+                <a href="{% url 'dashboard:hospitals_list' %}"
+                    class="sidebar-item-active flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                    <span class="font-medium">Hospitals</span>
+                </a>
+
+                <a href="{% url 'dashboard:user_management' %}"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                    <i data-lucide="users-2" class="w-5 h-5"></i>
+                    <span class="font-medium">User Management</span>
+                </a>
+
+                <div class="pt-6">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-4 px-4">System</p>
+                    <a href="{% url 'dashboard:security_logs' %}"
+                        class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                        <span>Security Logs</span>
+                    </a>
+                    <a href="{% url 'dashboard:global_settings' %}"
+                        class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span class="font-medium">Global Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="mt-auto p-8 border-t border-slate-800/50">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button
+                    class="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-semibold">Sign Out</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 ml-72">
+
+        <!-- ================= TOP HEADER (Matched with Dashboard) ================= -->
+        <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'dashboard:hospitals_list' %}"
+                        class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                        <i data-lucide="arrow-left" class="w-5 h-5 text-slate-500"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900">Facility Profile</h1>
+                        <p class="text-xs text-slate-500 font-medium">Comprehensive overview of 
+                            {{ hospital.name }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                        <a href="{% url 'dashboard:hospital_edit' hospital.id %}"
+                            class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            Edit Profile
+                        </a>
+
+                        <div class="flex items-center gap-3 group ml-4">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center rounded-xl font-bold shadow-md shadow-blue-500/20">
+                                {{ request.user.first_name|first|upper }}
+                            </div>
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-bold text-slate-900 leading-none">
+                                    {{ request.user.first_name }}
+                                </p>
+                                <p class="text-[10px] text-blue-600 font-bold uppercase mt-1 tracking-wider">Root Admin
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================= PROFILE BODY ================= -->
+        <div class="p-8 space-y-8 max-w-[1200px] mx-auto">
+
+            <!-- Breadcrumbs -->
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+                <a href="{% url 'dashboard:superadmin_dashboard' %}"
+                    class="hover:text-blue-600 transition-colors">Dashboard</a>
+                <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                <a href="{% url 'dashboard:hospitals_list' %}"
+                    class="hover:text-blue-600 transition-colors">Hospitals</a>
+                <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                <span class="text-slate-900">Facility Details</span>
+            </nav>
+
+            <!-- Summary Card -->
+            <div
+                class="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm flex flex-col md:flex-row items-center gap-8 relative overflow-hidden group">
+                <!-- Decorative element -->
+                <div
+                    class="absolute right-0 top-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110">
+                </div>
+
+                <div
+                    class="w-24 h-24 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-4xl font-extrabold uppercase shadow-inner relative z-10">
+                    {{ hospital.name|slice:":2" }}
+                </div>
+
+                <div class="flex-1 text-center md:text-left space-y-2 relative z-10">
+                    <div class="flex items-center gap-3 justify-center md:justify-start">
+                        <h2 class="text-3xl font-extrabold text-slate-900">{{ hospital.name }}</h2>
+                        {% if hospital.is_active %}
+                        <span
+                            class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100 uppercase flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Active
+                        </span>
+                        {% else %}
+                        <span
+                            class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full border border-amber-100 uppercase">Pending</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-slate-500 flex items-center gap-2 justify-center md:justify-start font-medium">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> {{ hospital.city }}, India
+                    </p>
+                </div>
+            </div>
+
+            <!-- Detailed Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Info Column -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Basic Info -->
+                    <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-500"></i>
+                            Hospital Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Facility Name
+                                </p>
+                                <p class="text-sm font-semibold text-slate-700">{{ hospital.name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">City Location
+                                </p>
+                                <p class="text-sm font-semibold text-slate-700">{{ hospital.city }}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Full Address
+                                </p>
+                                <p class="text-sm font-semibold text-slate-700 leading-relaxed">
+                                    {{hospital.address|default:"Address not provided" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Details -->
+                    <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-purple-500"></i>
+                            Administrator Details
+                        </h3>
+                        <div
+                            class="flex items-center gap-4 p-6 bg-slate-50 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
+                            <div
+                                class="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600 border border-slate-100 group-hover:scale-110 transition-transform">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <p class="text-base font-bold text-slate-900">
+                                    {{ hospital.admin.get_full_name }}</p>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Primary
+                                    Facility Administrator</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Sidebar -->
+                <div class="space-y-8">
+                    <div
+                        class="bg-[#020617] rounded-3xl p-8 text-white shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                        <!-- BG Glow -->
+                        <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+
+                        <h3
+                            class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            Live Analytics
+                        </h3>
+
+                        <div class="space-y-8">
+                            <div class="flex justify-between items-end border-b border-slate-800 pb-5">
+                                <div class="space-y-1">
+                                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Patients
+                                        Today</p>
+                                    <p class="text-3xl font-extrabold tracking-tight">142</p>
+                                </div>
+                                <span class="text-emerald-400 text-xs font-bold mb-1">+12%</span>
+                            </div>
+
+                            <div class="flex justify-between items-end border-b border-slate-800 pb-5">
+                                <div class="space-y-1">
+                                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Active
+                                        Queues</p>
+                                    <p class="text-3xl font-extrabold tracking-tight text-blue-500">12</p>
+                                </div>
+                                <span class="text-slate-500 text-xs font-bold mb-1">Peak</span>
+                            </div>
+
+                            <div class="flex justify-between items-end">
+                                <div class="space-y-1">
+                                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg. Wait
+                                        Time</p>
+                                    <p class="text-3xl font-extrabold tracking-tight text-emerald-400">14m</p>
+                                </div>
+                                <i data-lucide="trending-down" class="w-5 h-5 text-emerald-400 mb-1"></i>
+                            </div>
+                        </div>
+
+                        <button
+                            class="w-full mt-10 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/5">
+                            Generate Full Report
+                        </button>
+                    </div>
+
+                    <!-- System Access Log Info -->
+                    <div class="bg-blue-50 rounded-3xl p-6 border border-blue-100">
+                        <p class="text-blue-800 text-xs font-bold flex items-center gap-2 mb-2">
+                            <i data-lucide="lock" class="w-3 h-3"></i>
+                            Access Control
+                        </p>
+                        <p class="text-blue-600/80 text-[11px] leading-relaxed">
+                            Last admin activity recorded <span class="font-bold">45 minutes ago</span> from Ahmedabad
+                            IP.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

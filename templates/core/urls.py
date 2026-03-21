@@ -1,14 +1,14 @@
-# templates/core/urls.py
+# # templates/core/urls.py
 
-from django.urls import path
-from .admin_views import superadmin_dashboard
+# from django.urls import path
+# from .admin_views import superadmin_dashboard
 
-urlpatterns = [
+# urlpatterns = [
 
-    path(
-        "admin/dashboard/",
-        superadmin_dashboard,
-        name="superadmin_dashboard"
-    ),
+#     path(
+#         "admin/dashboard/",
+#         superadmin_dashboard,
+#         name="superadmin_dashboard"
+#     ),
 
-]
+# ]

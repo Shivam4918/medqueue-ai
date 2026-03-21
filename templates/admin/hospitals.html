@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospitals | MedQueue AI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .sidebar-item-active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 100%);
+            border-left: 4px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .table-row-hover:hover {
+            background-color: #f1f5f9;
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+
+<body class="flex min-h-screen">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="w-72 bg-[#020617] text-slate-400 flex flex-col fixed h-full z-50">
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-10">
+                <div
+                    class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="activity" class="text-white w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">MedQueue <span class="text-blue-500">AI</span>
+                </h2>
+            </div>
+
+            <nav class="space-y-1">
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-4 px-4">Main Menu</p>
+
+                <a href="{% url 'dashboard:superadmin_dashboard' %}"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all group">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span class="font-medium">Overview</span>
+                </a>
+
+                <a href="/hospitals/create/"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span class="font-medium">Add Hospital</span>
+                </a>
+
+                <!-- ACTIVE STATE FOR HOSPITALS -->
+                <a href="{% url 'dashboard:hospitals_list' %}"
+                    class="sidebar-item-active flex items-center gap-3 px-4 py-3 rounded-r-xl transition-all">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                    <span class="font-medium">Hospitals</span>
+                </a>
+
+                <a href="{% url 'dashboard:user_management' %}"
+                    class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                    <i data-lucide="users-2" class="w-5 h-5"></i>
+                    <span class="font-medium">User Management</span>
+                </a>
+
+                <div class="pt-6">
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-4 px-4">System</p>
+                    <a href="{% url 'dashboard:security_logs' %}"
+                        class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                        <span>Security Logs</span>
+                    </a>
+                    <a href="{% url 'dashboard:global_settings' %}"
+                        class="flex items-center gap-3 px-4 py-3 hover:text-white hover:bg-white/5 rounded-r-xl transition-all">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span class="font-medium">Global Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="mt-auto p-8 border-t border-slate-800/50">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button
+                    class="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-semibold">Sign Out</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 ml-72">
+
+        <!-- ================= TOP HEADER ================= -->
+        <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">Hospital Directory</h1>
+                    <p class="text-xs text-slate-500 font-medium">View and manage all registered facilities</p>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                        <button class="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                        </button>
+
+                        <div class="flex items-center gap-3 cursor-pointer group">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center rounded-xl font-bold shadow-md shadow-blue-500/20">
+                                {{ request.user.first_name|first|upper }}
+                            </div>
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-bold text-slate-900 leading-none">{{ request.user.first_name }}
+                                </p>
+                                <p class="text-[10px] text-blue-600 font-bold uppercase mt-1 tracking-wider">Root Admin
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- ================= CONTENT AREA ================= -->
+        <div class="p-8 space-y-6 max-w-[1400px] mx-auto">
+
+            <!-- TOP ACTIONS -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- SEARCH BAR -->
+                <div class="relative w-full md:w-96">
+                    <i data-lucide="search" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input id="searchInput" type="text" placeholder="Search hospitals..."
+                        class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all">
+                </div>
+
+                <!-- ADD BUTTON -->
+                <a href="/hospitals/create/"
+                    class="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    Add New Hospital
+                </a>
+            </div>
+
+            <!-- DATA TABLE CARD -->
+            <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto min-h-[400px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead
+                            class="bg-slate-50/50 text-slate-500 text-[10px] uppercase font-bold tracking-widest border-b border-slate-100">
+                            <tr>
+                                <th class="px-8 py-5">Hospital Facility</th>
+                                <th class="px-8 py-5">Primary Administrator</th>
+                                <th class="px-8 py-5">City</th>
+                                <th class="px-8 py-5">Status</th>
+                                <th class="px-8 py-5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="hospitalTable" class="divide-y divide-slate-100">
+                            {% for hospital in hospitals %}
+                            <tr class="table-row-hover group hospital-row">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs uppercase group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                            {{ hospital.name|slice:":2" }}
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-900 hospital-name">
+                                                {{ hospital.name}}</p>
+                                            <p class="text-[10px] text-slate-400 font-medium">
+                                                ID: #{{forloop.counter|add:1000 }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="user-cog" class="w-4 h-4 text-slate-300"></i>
+                                        <span class="text-sm text-slate-600 font-medium hospital-admin">
+                                            {{hospital.admin.get_full_name }}</span>
+                                    </div>
+                                </td>
+
+                                <td class="px-8 py-5 text-sm text-slate-500 hospital-city">
+                                    {{ hospital.city }}
+                                </td>
+
+                                <td class="px-8 py-5">
+                                    {% if hospital.is_active %}
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        ACTIVE
+                                    </span>
+                                    {% else %}
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-full border border-amber-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        PENDING
+                                    </span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center justify-end gap-2">
+
+                                        <!-- VIEW -->
+                                        <a href="{% url 'dashboard:hospital_detail' hospital.id %}"
+                                            class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                            title="View Details">
+
+                                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                                        </a>
+
+
+                                        <!-- EDIT -->
+                                        <a href="{% url 'dashboard:hospital_edit' hospital.id %}"
+                                            class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                                            title="Edit Facility">
+
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </a>
+
+                                        <!-- DELETE -->
+                                        {% csrf_token %}
+                                        <a href="{% url 'dashboard:hospital_delete' hospital.id %}"
+                                            class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                            title="Delete">
+
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="noResultsRow">
+                                <td colspan="5" class="px-8 py-20 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div
+                                            class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
+                                            <i data-lucide="building" class="w-8 h-8 text-slate-300"></i>
+                                        </div>
+                                        <p class="text-slate-400 font-medium">No hospitals found in the directory</p>
+                                        <a href="/hospitals/create/"
+                                            class="text-blue-600 text-sm font-bold hover:underline">Add your first
+                                            hospital</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <!-- Local No Search Results -->
+                            <tr id="localNoResults" class="hidden">
+                                <td colspan="5" class="px-8 py-20 text-center text-slate-400 font-medium">
+                                    No hospitals matching your search.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- FOOTER / PAGINATION -->
+                <div class="px-8 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                    <p id="paginationInfo" class="text-xs text-slate-500 font-medium">
+                        Showing 0 to 0 of 0 facilities
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <span id="pageIndicator" class="text-xs font-bold text-slate-900">Page 1 of 1</span>
+                        <div class="flex gap-2">
+                            <button id="prevBtn"
+                                class="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                            <button id="nextBtn"
+                                class="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- PAGINATION & SEARCH SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById("searchInput");
+            const hospitalTable = document.getElementById("hospitalTable");
+            const rows = Array.from(hospitalTable.querySelectorAll(".hospital-row"));
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const paginationInfo = document.getElementById("paginationInfo");
+            const pageIndicator = document.getElementById("pageIndicator");
+            const localNoResults = document.getElementById("localNoResults");
+
+            let currentPage = 1;
+            const rowsPerPage = 5;
+            let filteredRows = [...rows];
+
+            function updateTable() {
+                const totalRows = filteredRows.length;
+                const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+
+                // Clamp current page
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                // Hide all first
+                rows.forEach(row => row.classList.add('hidden'));
+
+                // Show rows for current page
+                const currentRows = filteredRows.slice(start, end);
+                currentRows.forEach(row => row.classList.remove('hidden'));
+
+                // Update UI elements
+                const showingTo = Math.min(end, totalRows);
+                paginationInfo.innerText = totalRows > 0
+                    ? `Showing ${start + 1} to ${showingTo} of ${totalRows} facilities`
+                    : "Showing 0 facilities";
+
+                pageIndicator.innerText = `Page ${currentPage} of ${totalPages}`;
+
+                // Update buttons
+                prevBtn.disabled = currentPage === 1;
+                nextBtn.disabled = currentPage === totalPages || totalRows === 0;
+
+                // Handle no results view
+                if (totalRows === 0 && rows.length > 0) {
+                    localNoResults.classList.remove('hidden');
+                } else {
+                    localNoResults.classList.add('hidden');
+                }
+            }
+
+            searchInput.addEventListener("input", function () {
+                const value = this.value.toLowerCase();
+
+                filteredRows = rows.filter(row => {
+                    const text = row.innerText.toLowerCase();
+                    return text.includes(value);
+                });
+
+                currentPage = 1; // Reset to first page on search
+                updateTable();
+            });
+
+            prevBtn.addEventListener("click", () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                }
+            });
+
+            nextBtn.addEventListener("click", () => {
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateTable();
+                }
+            });
+
+            // Initial Load
+            updateTable();
+            lucide.createIcons();
+        });
+    </script>
+
+</body>
+
+</html>

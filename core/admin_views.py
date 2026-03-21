@@ -1,27 +1,27 @@
-# core/admin_views.py
+# # core/admin_views.py
 
-from django.shortcuts import render
-from hospitals.models import Hospital
-from patients.models import Patient
-from token_queue.models import Token
-from django.utils import timezone
+# from django.shortcuts import render
+# from hospitals.models import Hospital
+# from patients.models import Patient
+# from token_queue.models import Token
+# from django.utils import timezone
 
 
-def superadmin_dashboard(request):
+# def superadmin_dashboard(request):
 
-    hospitals = Hospital.objects.count()
-    patients = Patient.objects.count()
+#     hospitals = Hospital.objects.count()
+#     patients = Patient.objects.count()
 
-    tokens = Token.objects.filter(
-        created_at__date=timezone.now().date()
-    ).count()
+#     tokens = Token.objects.filter(
+#         created_at__date=timezone.now().date()
+#     ).count()
 
-    return render(
-        request,
-        "admin/dashboard.html",
-        {
-            "hospitals": hospitals,
-            "patients": patients,
-            "tokens": tokens
-        }
-    )
+#     return render(
+#         request,
+#         "admin/dashboard.html",
+#         {
+#             "hospitals": hospitals,
+#             "patients": patients,
+#             "tokens": tokens
+#         }
+#     )

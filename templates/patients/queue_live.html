@@ -179,7 +179,7 @@
 
             <div>
                 <h2 class="text-2xl font-bold">
-                    Live Queue — {{ hospital.name }}
+                    {{ hospital.name }}
                 </h2>
 
                 <p class="text-gray-500">
@@ -194,11 +194,11 @@
                 <p class="text-gray-500 text-sm mb-2">NOW SERVING</p>
 
                 {% if now_serving_display %}
-                <p id="now-serving" class="text-3xl font-bold text-green-600">
+                <p id="now-serving" class="text-3xl font-bold text-grey-600">
                     {{ now_serving_display }}
                 </p>
                 {% else %}
-                <p id="now-serving" class="text-2xl font-bold text-gray-600">
+                <p id="now-serving" class="text-3xl font-bold text-green-600">
                     No active token
                 </p>
                 {% endif %}
