@@ -3,6 +3,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <head>
     <meta charset="UTF-8">
@@ -48,36 +49,88 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* NAVBAR SCROLL EFFECT */
+        .nav-scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* ACTIVE LINK */
+        .nav-link-active {
+            color: #2563eb !important;
+            font-weight: 600;
+        }
     </style>
 </head>
 
 <body class="bg-[#F9FAFB] text-gray-800">
 
     <!-- ================= NAVBAR ================= -->
-    <header class="bg-white border-b sticky top-0 z-50">
+    <header id="navbar" class="bg-white border-b sticky top-0 z-50 transition-all">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-            <h1 class="text-2xl font-extrabold tracking-tight text-[#1E3A8A]">
-                MedQueue AI
-            </h1>
+            <!-- LOGO -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="activity" class="text-white w-5 h-5"></i>
+                </div>
 
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight leading-none">MedQueue <span
+                            class="text-blue-600">AI</span></span>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Next-Gen
+                        Healthcare</span>
+                </div>
+            </div>
+
+            <!-- DESKTOP NAV -->
             <nav class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
-                <a href="#features" class="hover:text-[#1E3A8A] transition">Features</a>
-                <a href="#how" class="hover:text-[#1E3A8A] transition">How It Works</a>
-                <a href="#hospitals" class="hover:text-[#1E3A8A] transition">For Hospitals</a>
+                <a href="#features" class="hover:text-blue-600 transition">Features</a>
+                <a href="#how" class="hover:text-blue-600 transition">How It Works</a>
+                <a href="#hospitals" class="hover:text-blue-600 transition">For Hospitals</a>
             </nav>
 
-            <div class="space-x-3">
+            <!-- ACTION BUTTONS (DESKTOP) -->
+            <div class="hidden md:flex items-center gap-3">
                 <a href="/auth/patient/login/"
-                    class="px-4 py-2 border border-[#1E3A8A] text-[#1E3A8A] rounded-lg hover:bg-[#E0F2FE] transition font-medium">
+                    class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
                     Patient Login
                 </a>
 
                 <a href="/portal/"
-                    class="px-5 py-2 bg-[#0F766E] text-white rounded-lg hover:bg-[#115E59] transition shadow-md font-semibold">
+                    class="px-5 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-lg shadow hover:scale-105 transition">
                     Staff Portal
                 </a>
             </div>
+
+            <!-- MOBILE MENU BUTTON -->
+            <button id="menuBtn" class="md:hidden">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu"
+            class="hidden md:hidden px-6 pb-4 bg-white border-t space-y-4 text-sm font-medium text-gray-600">
+
+            <a href="#features" class="block hover:text-blue-600">Features</a>
+            <a href="#how" class="block hover:text-blue-600">How It Works</a>
+            <a href="#hospitals" class="block hover:text-blue-600">For Hospitals</a>
+
+            <hr>
+
+            <a href="/auth/patient/login/"
+                class="block px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-center">
+                Login
+            </a>
+
+            <a href="/portal/" class="block px-4 py-2 bg-teal-600 text-white rounded-lg text-center">
+                Staff Portal
+            </a>
         </div>
     </header>
 
@@ -291,6 +344,55 @@
 
         updateCount();
     });
+
+    /* ================= NAVBAR SCROLL EFFECT ================= */
+    window.addEventListener("scroll", function () {
+        const navbar = document.getElementById("navbar");
+
+        if (window.scrollY > 20) {
+            navbar.classList.add("nav-scrolled");
+        } else {
+            navbar.classList.remove("nav-scrolled");
+        }
+    });
+
+    /* ================= ACTIVE LINK SCROLL ================= */
+    const sections = document.querySelectorAll("section");
+    const navLinks = document.querySelectorAll("nav a");
+
+    window.addEventListener("scroll", () => {
+        let current = "";
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 120;
+            if (pageYOffset >= sectionTop) {
+                current = section.getAttribute("id");
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove("nav-link-active");
+            if (link.getAttribute("href") === "#" + current) {
+                link.classList.add("nav-link-active");
+            }
+        });
+    });
+
+    /* ================= MOBILE MENU TOGGLE ================= */
+    const menuBtn = document.getElementById("menuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    menuBtn.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+    });
+
+    /* CLOSE MENU ON CLICK */
+    document.querySelectorAll("#mobileMenu a").forEach(link => {
+        link.addEventListener("click", () => {
+            mobileMenu.classList.add("hidden");
+        });
+    });
+    lucide.createIcons();
 </script>
 
 

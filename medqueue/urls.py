@@ -42,11 +42,25 @@ def manifest(request):
         ]
     })
 
+def custom_admin_entry(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("/admin/dashboard/")
+    return redirect("/secure-admin/login/")
 
 urlpatterns = [
 
-     # ✅ YOUR CUSTOM ADMIN DASHBOARD (ADD THIS FIRST)
+    # 🔥 CUSTOM ADMIN ENTRY (MAIN ENTRY POINT)
+    path("admin/", custom_admin_entry),
+
+    # ✅ YOUR CUSTOM ADMIN DASHBOARD (ADD THIS FIRST)
     path("admin/dashboard/", super_admin_dashboard),
+
+    # ✅ Django admin FIRST (CRITICAL)
+    path("secure-admin/", admin.site.urls),
+
+    # 🔥 Admin login/logout
+    # path("admin/login/", admin.site.login),
+    # path("admin/logout/", admin.site.logout),
 
     # Landing Page
     path("", TemplateView.as_view(template_name="core/home.html"), name="landing"),
@@ -54,11 +68,6 @@ urlpatterns = [
     # Staff portal selection page
     path("portal/", TemplateView.as_view(template_name="core/portal.html"), name="portal"),
 
-    # Core custom routes (Super admin dashboard)
-    
-
-    # Django admin (default)
-    path("admin/", admin.site.urls),
 
     # Hospitals
     path("hospitals/", include("hospitals.urls")),

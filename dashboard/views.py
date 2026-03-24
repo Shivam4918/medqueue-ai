@@ -31,6 +31,10 @@ from django.db.models import Q
 from patients.models import Patient
 from django.core.paginator import Paginator
 
+from analytics.ai_engine import predict_rush, train_model
+from django.core.cache import cache
+from django.contrib.admin.views.decorators import staff_member_required
+
 from analytics.reports import (
     total_patients_today,
     tokens_per_doctor,
@@ -59,7 +63,13 @@ def hospital_dashboard(request):
     if not hospital:
         return render(request, "patients/not_allowed.html")
 
-    # Stats
+    # ✅ GET TODAY DATE
+    today = timezone.localdate()
+
+    # ===============================
+    # 📊 STATS (TODAY BASED)
+    # ===============================
+
     total_doctors = Doctor.objects.filter(
         hospital=hospital,
         is_active=True
@@ -67,19 +77,25 @@ def hospital_dashboard(request):
 
     waiting_tokens = Token.objects.filter(
         hospital=hospital,
-        status="waiting"
+        status="waiting",
+        booked_at__date=today   # ✅ FIX
     ).count()
 
     in_service_tokens = Token.objects.filter(
         hospital=hospital,
-        status="in_service"
+        status="in_service",
+        booked_at__date=today   # ✅ FIX
     ).count()
 
     completed_tokens = Token.objects.filter(
         hospital=hospital,
-        status="completed"
+        status="completed",
+        booked_at__date=today   # ✅ IMPORTANT FIX
     ).count()
 
+    # ===============================
+    # CONTEXT
+    # ===============================
     context = {
         "hospital": hospital,
         "total_doctors": total_doctors,
@@ -139,6 +155,8 @@ def hospital_analytics_dashboard(request, hospital_id):
 # 👤 PATIENT DASHBOARD
 # ======================================================
 
+from analytics.ai_engine import predict_rush  # ✅ ADD THIS IMPORT
+
 @login_required
 @role_required("patient")
 def patient_dashboard(request):
@@ -169,6 +187,66 @@ def patient_dashboard(request):
         "has_token": False,
         "greeting": greeting
     }
+
+    # ======================================================
+    # 🧠 AI RUSH ALERT (SAFE ADDITION)
+    # ======================================================
+    try:
+        # choose hospital (priority: active token → else first hospital)
+        hospital = token.hospital if token else Hospital.objects.first()
+
+        train_model(hospital)
+
+        cache_key = f"ai_{hospital.id}"
+
+        ai_data = cache.get(cache_key)
+
+        if not ai_data:
+            ai_data = predict_rush(hospital)
+            cache.set(cache_key, ai_data, 300)  # 5 minutes
+
+        if ai_data:
+            best_hour = ai_data["best_hour"]
+
+            # format time nicely
+            best_time = f"{best_hour}:00 - {best_hour + 1}:00"
+
+            today_count = Token.objects.filter(
+                hospital=hospital,
+                booked_at__date=today
+            ).count()
+
+            raw_growth = (
+                (ai_data["total_load"] - today_count) / max(today_count, 5)
+            ) * 100
+
+            # clamp value to realistic range
+            growth = max(5, min(int(raw_growth), 80))   
+            
+                # 🔥 ADD THIS BLOCK HERE
+            if growth > 60:
+                level = "High Rush"
+            elif growth > 30:
+                level = "Moderate Rush"
+            else:
+                level = "Low Rush"
+
+            context["ai_alert"] = {
+                "growth": max(growth, 10),
+                "hospital": hospital.name,
+                "best_time": best_time,
+                "level": level 
+            }
+        else:
+            context["ai_alert"] = None
+
+    except Exception as e:
+        # fallback safety (never break UI)
+        context["ai_alert"] = None
+
+    # ======================================================
+    # 🔁 YOUR EXISTING LOGIC (UNCHANGED)
+    # ======================================================
 
     if token:
 
@@ -212,7 +290,7 @@ def patient_dashboard(request):
         # Nearby hospitals
         hospitals = Hospital.objects.all().order_by("name")[:5]
 
-        # Recent visits (last completed tokens)
+        # Recent visits
         recent_visits = (
             Token.objects
             .filter(
@@ -608,22 +686,29 @@ def doctor_patient_history(request):
 
     doctor = Doctor.objects.filter(user=request.user).first()
 
+    # ✅ INCLUDE COMPLETED + SKIPPED
     tokens = (
         Token.objects
         .filter(
             doctor=doctor,
-            status="completed"
+            status__in=["completed", "skipped"]   # ✅ FIX
         )
         .select_related("patient", "hospital")
         .order_by("-updated_at", "-booked_at")
     )
 
-    # ✅ Completed today calculation
+    # ✅ TODAY CALCULATION (BOTH TYPES)
     today = timezone.localdate()
 
     completed_today = Token.objects.filter(
         doctor=doctor,
         status="completed",
+        updated_at__date=today
+    ).count()
+
+    skipped_today = Token.objects.filter(
+        doctor=doctor,
+        status="skipped",
         updated_at__date=today
     ).count()
 
@@ -637,7 +722,8 @@ def doctor_patient_history(request):
         "doctors/patient_history.html",
         {
             "page_obj": page_obj,
-            "completed_today": completed_today
+            "completed_today": completed_today,
+            "skipped_today": skipped_today   # ✅ OPTIONAL (for UI)
         }
     )
 
@@ -1343,8 +1429,11 @@ from patients.models import Patient
 from token_queue.models import Token
 
 
-@login_required
+@staff_member_required(login_url="/admin/login/")
 def super_admin_dashboard(request):
+
+    if not request.user.is_superuser:
+        return render(request, "patients/not_allowed.html")
 
     today = timezone.localdate()
 

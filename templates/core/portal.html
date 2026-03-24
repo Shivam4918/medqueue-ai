@@ -3,6 +3,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <head>
     <meta charset="UTF-8">
@@ -26,9 +27,18 @@
     <!-- NAVBAR -->
     <header class="bg-white border-b">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-[#1E3A8A]">
-                MedQueue AI
-            </h1>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="activity" class="text-white w-5 h-5"></i>
+                </div>
+
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight leading-none">MedQueue <span
+                            class="text-blue-600">AI</span></span>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Next-Gen
+                        Healthcare</span>
+                </div>
+            </div>
 
             <a href="/" class="text-sm text-gray-600 hover:text-[#1E3A8A] transition">
                 ← Back to Home
@@ -127,7 +137,9 @@
     <footer class="bg-[#1E3A8A] text-gray-200 py-6 text-center text-sm">
         © 2026 MedQueue AI — Secure Staff Access
     </footer>
-
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>

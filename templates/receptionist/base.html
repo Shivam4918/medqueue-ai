@@ -24,71 +24,83 @@
 
 </head>
 
-<body class="flex">
+<body class="flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#1E3A8A] h-screen text-white flex flex-col fixed top-0 left-0 border-r border-white/10">
 
-    <aside class="w-64 bg-[#1E3A8A] min-h-screen text-white p-6">
+        <div class="h-[72px] px-6 flex items-center gap-3 border-b border-white/20">
 
-        <h2 class="text-2xl font-bold mb-10">
-            MedQueue AI
-        </h2>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="activity" class="text-white w-5 h-5"></i>
+                </div>
 
-        <nav class="space-y-2">
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight leading-none">MedQueue <span
+                            class="text-blue-600">AI</span></span>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Next-Gen
+                        Healthcare</span>
+                </div>
+            </div>
 
-            <a href="{% url 'dashboard:receptionist_dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                Dashboard
-            </a>
+        </div>
+        <div class="flex-1 flex flex-col justify-start pt-4 px-4 space-y-3">
+            <nav class="space-y-2">
 
-            <a href="{% url 'dashboard:receptionist_walkin' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                Create Token
-            </a>
+                <a href="{% url 'dashboard:receptionist_dashboard' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    Dashboard
+                </a>
 
-            <a href="{% url 'dashboard:scan_qr_page' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="qr-code" class="w-5 h-5"></i>
-                Scan QR Token
-            </a>
+                <a href="{% url 'dashboard:receptionist_walkin' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    Create Token
+                </a>
 
-            <a href="{% url 'dashboard:receptionist_queue' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="activity" class="w-5 h-5"></i>
-                Live Queue
-            </a>
+                <a href="{% url 'dashboard:scan_qr_page' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="qr-code" class="w-5 h-5"></i>
+                    Scan QR Token
+                </a>
 
-            <a href="{% url 'dashboard:doctor_list' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="stethoscope" class="w-5 h-5"></i>
-                Doctor List
-            </a>
+                <a href="{% url 'dashboard:receptionist_queue' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    Live Queue
+                </a>
 
-            <a href="{% url 'dashboard:receptionist_profile' %}"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
-                <i data-lucide="user" class="w-5 h-5"></i>
-                Profile
-            </a>
+                <a href="{% url 'dashboard:doctor_list' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                    Doctor List
+                </a>
 
+                <a href="{% url 'dashboard:receptionist_profile' %}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                    Profile
+                </a>
+
+            </nav>
+        </div>
+        <div class="h-[72px] flex items-center px-6 border-t border-white/20">
             <button onclick="openLogoutModal()"
                 class="flex items-center gap-3 w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 transition-all">
                 <i data-lucide="log-out" class="w-5 h-5"></i>
                 Logout
             </button>
-
-        </nav>
-
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
 
-    <div class="flex-1">
+    <div class="flex-1 ml-64 flex flex-col h-screen">
 
         <!-- HEADER -->
-
-        <header class="flex justify-between items-center bg-white p-6 border-b">
+        <header class="h-[72px] flex items-center justify-between bg-white border-b px-6">
 
             <h1 class="text-xl font-semibold">
                 {% block page_title %}Receptionist Dashboard{% endblock %}
@@ -131,34 +143,35 @@
 
         </header>
 
-
-        {% if messages %}
-        <div class="px-8 mt-4 space-y-2">
-            {% for message in messages %}
-            <div class="p-3 rounded-lg text-sm font-medium
-        {% if message.tags == 'success' %}
-            bg-green-100 text-green-700
-        {% elif message.tags == 'error' %}
-            bg-red-100 text-red-700
-        {% else %}
-            bg-gray-100 text-gray-700
-        {% endif %}
-    ">
-                {{ message }}
+        <div class="flex-1 overflow-y-auto">
+            {% if messages %}
+            <div class="px-8 mt-4 space-y-2">
+                {% for message in messages %}
+                <div class="p-3 rounded-lg text-sm font-medium
+                    {% if message.tags == 'success' %}
+                        bg-green-100 text-green-700
+                    {% elif message.tags == 'error' %}
+                        bg-red-100 text-red-700
+                    {% else %}
+                        bg-gray-100 text-gray-700
+                    {% endif %}
+                ">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% endif %}
+
+            <!-- PAGE CONTENT -->
+
+            <div class="p-8">
+
+                {% block content %}
+                {% endblock %}
+
+            </div>
+
         </div>
-        {% endif %}
-
-        <!-- PAGE CONTENT -->
-
-        <div class="p-8">
-
-            {% block content %}
-            {% endblock %}
-
-        </div>
-
     </div>
 
     <!-- LOGOUT MODAL -->

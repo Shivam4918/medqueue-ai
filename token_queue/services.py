@@ -14,6 +14,8 @@ from doctors.models import Doctor
 from hospitals.models import Hospital
 from users.models import User
 
+from analytics.ai_engine import train_model
+
 from analytics.events import (
     log_event,
     TOKEN_CREATED,
@@ -81,7 +83,7 @@ def create_token(patient: Patient, doctor: Doctor, hospital: Hospital = None, pr
         kwargs["booked_date"] = _today_date()
 
     token = Token.objects.create(**kwargs)
-
+    train_model(hospital)
     log_event(
         event=TOKEN_CREATED,
         hospital_id=hospital.id,

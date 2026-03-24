@@ -30,7 +30,6 @@
     <div class="grid grid-cols-2 w-[900px] bg-white rounded-xl shadow-xl overflow-hidden">
 
         <!-- LEFT PANEL -->
-
         <div class="bg-[#DC2626] text-white p-10 flex flex-col justify-center">
 
             <h1 class="text-3xl font-bold mb-4">
@@ -46,64 +45,47 @@
             </p>
 
             <ul class="space-y-3 text-sm">
-
                 <li>✔ Manage Hospitals</li>
                 <li>✔ Manage Users</li>
                 <li>✔ Platform Analytics</li>
                 <li>✔ System Monitoring</li>
-
             </ul>
 
         </div>
 
-
         <!-- LOGIN FORM -->
-
         <div class="p-10">
 
             <h2 class="text-xl font-semibold mb-6">
                 Super Admin Login
             </h2>
 
-            {% if form.errors %}
-
-            <div class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm">
-                Invalid username or password
-            </div>
-
-            {% endif %}
-
-            <form method="post" action="/accounts/login/">
-
+            <form method="post" action="">
                 {% csrf_token %}
-                <input type="hidden" name="next" value="{% url 'dashboard:superadmin_dashboard' %}">
-                <div class="mb-4">
 
+                <input type="hidden" name="next" value="/admin/dashboard/">
+
+                <div class="mb-4">
                     <label class="text-sm text-gray-600">
                         Username
                     </label>
 
                     <input type="text" name="username" autofocus required
                         class="w-full border mt-1 p-3 rounded-lg focus:ring-2 focus:ring-red-500">
-
                 </div>
 
-
                 <div class="mb-6">
-
                     <label class="text-sm text-gray-600">
                         Password
                     </label>
 
                     <input type="password" name="password" required
                         class="w-full border mt-1 p-3 rounded-lg focus:ring-2 focus:ring-red-500">
-
                 </div>
 
-                <button type="submit" class="w-full bg-[#DC2626] text-white py-3 rounded-lg hover:bg-red-700">
-
+                <button type="submit"
+                    class="w-full bg-[#DC2626] text-white py-3 rounded-lg hover:bg-red-700 transition">
                     Login
-
                 </button>
 
             </form>
@@ -115,6 +97,62 @@
         </div>
 
     </div>
+
+    <!-- ERROR MODAL -->
+    <div id="errorModal" class="fixed inset-0 hidden items-center justify-center bg-black/40 z-50">
+
+        <div class="bg-white rounded-xl shadow-xl p-6 w-[320px] text-center animate-scaleIn">
+
+            <h2 class="text-lg font-bold text-red-600 mb-2">
+                Unauthorized User
+            </h2>
+
+            <p class="text-gray-600 text-sm mb-4">
+                Invalid credentials. Please try again.
+            </p>
+
+            <button onclick="closeModal()"
+                class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">
+                OK
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ANIMATION -->
+    <style>
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scaleIn {
+            animation: scaleIn 0.25s ease;
+        }
+    </style>
+
+    <!-- 🔥 SCRIPT -->
+    <script>
+        function closeModal() {
+            document.getElementById("errorModal").classList.add("hidden");
+        }
+
+        {% if form.errors %}
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = document.getElementById("errorModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        });
+        {% endif %}
+    </script>
 
 </body>
 
