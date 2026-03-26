@@ -6,7 +6,7 @@ Django settings for medqueue project.
 
 import os
 from pathlib import Path
-import dj_database_url   # ✅ ADDED
+import dj_database_url
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -21,11 +21,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-for-dev')
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-# ✅ UPDATED (safe for local + railway)
-ALLOWED_HOSTS = os.getenv(
-    'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,.railway.app'
-).split(',')
+# ✅ FIXED (IMPORTANT FOR RAILWAY)
+ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
@@ -57,7 +54,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 
-    # ✅ ADDED (static files production safe)
+    # ✅ REQUIRED FOR STATIC FILES (VERY IMPORTANT)
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -89,38 +86,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'medqueue.wsgi.application'
 ASGI_APPLICATION = 'medqueue.asgi.application'
 
+
+# ==============================
+# REDIS
+# ==============================
+
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
 
 # ==============================
-# DATABASE CONFIG (SAFE HYBRID)
+# DATABASE
 # ==============================
 
-if os.getenv("DATABASE_URL"):
-    # 🚀 Railway PostgreSQL
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600)
-    }
-else:
-    # 💻 Local MySQL (your existing)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('MYSQL_DB', 'medqueue'),
-            'USER': os.getenv('MYSQL_USER', 'medqueue_user'),
-            'PASSWORD': os.getenv('MYSQL_PASS', 'Shivam4918@'),
-            'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
-            'PORT': os.getenv('MYSQL_PORT', '3307'),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+}
 
 
-# MongoDB
-MONGO_URL = os.getenv('MONGO_URL', 'mongodb://127.0.0.1:27017')
-
+# ==============================
+# PASSWORD VALIDATION
+# ==============================
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -149,12 +134,14 @@ STATICFILES_DIRS = [
     BASE_DIR / "static"
 ]
 
-# ✅ ADDED
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# ✅ ADDED (production safe)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+
+# ==============================
+# DEFAULTS
+# ==============================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
@@ -174,14 +161,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # ==============================
-# CHANNELS (UPDATED SAFE)
+# CHANNELS (REDIS)
 # ==============================
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")],
+            "hosts": [REDIS_URL],
         },
     },
 }
@@ -191,10 +178,10 @@ CHANNEL_LAYERS = {
 # CELERY
 # ==============================
 
-CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
 
 
 # ==============================
