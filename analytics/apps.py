@@ -6,5 +6,8 @@ class AnalyticsConfig(AppConfig):
     name = 'analytics'
 
     def ready(self):
-        from .mongo_client import ensure_indexes
-        ensure_indexes()
+        try:
+            from .mongo_client import ensure_indexes
+            ensure_indexes()
+        except Exception as e:
+            print("MongoDB not ready, skipping index creation:", e)

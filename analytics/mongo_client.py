@@ -1,47 +1,51 @@
+# analytics/mongo_client.py
+
 from pymongo import MongoClient, ASCENDING
 from django.conf import settings
 
 
+def get_mongo_url():
+    """
+    Safe getter for Mongo URL
+    """
+    return getattr(settings, "MONGO_URL", "mongodb://localhost:27017")
+
+
 def get_mongo_client():
-    mongo_url = getattr(settings, "MONGO_URL", None)
-    if not mongo_url:
-        return None
-    try:
-        return MongoClient(mongo_url)
-    except Exception:
-        return None
+    return MongoClient(get_mongo_url())
 
 
 def get_analytics_db():
     client = get_mongo_client()
-    if client:
-        return client["medqueue_analytics"]
-    return None
+    return client["medqueue_analytics"]
 
 
 def get_events_collection():
     db = get_analytics_db()
-    if db:
-        return db["events"]
-    return None
+    return db["events"]
 
 
 def ensure_indexes():
-    collection = get_events_collection()
-    if not collection:
-        return
+    try:
+        db = get_analytics_db()
+        events_collection = db["events"]
 
-    collection.create_index(
-        [("hospital_id", ASCENDING), ("timestamp", ASCENDING)],
-        name="hospital_time_idx"
-    )
+        events_collection.create_index(
+            [("hospital_id", ASCENDING), ("timestamp", ASCENDING)],
+            name="hospital_time_idx"
+        )
 
-    collection.create_index(
-        [("doctor_id", ASCENDING), ("timestamp", ASCENDING)],
-        name="doctor_time_idx"
-    )
+        events_collection.create_index(
+            [("doctor_id", ASCENDING), ("timestamp", ASCENDING)],
+            name="doctor_time_idx"
+        )
 
-    collection.create_index(
-        [("event", ASCENDING)],
-        name="event_type_idx"
-    )
+        events_collection.create_index(
+            [("event", ASCENDING)],
+            name="event_type_idx"
+        )
+
+        print("MongoDB indexes ensured")
+
+    except Exception as e:
+        print("MongoDB not ready:", e)
