@@ -93,6 +93,11 @@ ASGI_APPLICATION = 'medqueue.asgi.application'
 
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
+# ==============================
+# MONGODB (ADD THIS)
+# ==============================
+
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 
 # ==============================
 # DATABASE
