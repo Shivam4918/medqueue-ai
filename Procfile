@@ -1,0 +1,1 @@
+web: daphne medqueue.asgi:application
