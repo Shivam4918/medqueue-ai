@@ -1,5 +1,3 @@
-#medqueue/settings.py
-
 """
 Django settings for medqueue project.
 """
@@ -21,8 +19,27 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret-for-dev')
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-# ✅ FIXED (IMPORTANT FOR RAILWAY)
-ALLOWED_HOSTS = ['*']
+# ✅ FIXED (PRODUCTION READY)
+ALLOWED_HOSTS = [
+    "web-production-c7587.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
+
+
+# ==============================
+# CSRF + SECURITY (VERY IMPORTANT)
+# ==============================
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-c7587.up.railway.app",
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Required for Railway (HTTPS proxy)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 INSTALLED_APPS = [
@@ -54,12 +71,15 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 
-    # ✅ REQUIRED FOR STATIC FILES (VERY IMPORTANT)
+    # ✅ REQUIRED FOR STATIC FILES
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    # ✅ CSRF (KEEP THIS)
     'django.middleware.csrf.CsrfViewMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -93,11 +113,13 @@ ASGI_APPLICATION = 'medqueue.asgi.application'
 
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
+
 # ==============================
-# MONGODB (ADD THIS)
+# MONGODB
 # ==============================
 
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+
 
 # ==============================
 # DATABASE
@@ -150,7 +172,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
-
 
 LOGIN_URL = "/auth/patient/login/"
 LOGIN_REDIRECT_URL = "/dashboard/superadmin/dashboard/"
