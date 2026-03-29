@@ -17,6 +17,7 @@ from token_queue.views import track_token_view
 from dashboard.views import super_admin_dashboard
 
 
+
 # ==============================
 # PWA MANIFEST
 # ==============================
@@ -42,21 +43,21 @@ def manifest(request):
         ]
     })
 
-def custom_admin_entry(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect("/admin/dashboard/")
-    return redirect("/secure-admin/login/")
+# def custom_admin_entry(request):
+#     if request.user.is_authenticated and request.user.is_superuser:
+#         return redirect("/admin/dashboard/")
+#     return redirect("/secure-admin/login/")
 
 urlpatterns = [
 
-    # 🔥 CUSTOM ADMIN ENTRY (MAIN ENTRY POINT)
-    path("admin/", custom_admin_entry),
-
     # ✅ YOUR CUSTOM ADMIN DASHBOARD (ADD THIS FIRST)
     path("admin/dashboard/", super_admin_dashboard),
+    
+    # 🔥 CUSTOM ADMIN ENTRY (MAIN ENTRY POINT)
+    path("admin/", admin.site.urls),
 
     # ✅ Django admin FIRST (CRITICAL)
-    path("secure-admin/", admin.site.urls),
+    # path("secure-admin/", admin.site.urls),
 
     # 🔥 Admin login/logout
     # path("admin/login/", admin.site.login),
