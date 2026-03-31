@@ -456,6 +456,7 @@ from django.utils import timezone
 from django.db.models import Count, Avg, F
 from token_queue.models import Token
 from doctors.models import Doctor
+from django.db.models import DurationField, ExpressionWrapper
 
 
 @login_required
@@ -484,20 +485,35 @@ def hospital_analytics(request):
     skipped = tokens_today.filter(status="skipped").count()
 
     # =============================
-    # Average Waiting Time
+    # ✅ Average Waiting Time (FIXED & SAFE)
     # =============================
 
-    avg_wait = (
-        tokens_today
-        .exclude(called_at=None)
-        .annotate(wait_time=F("called_at") - F("booked_at"))
-        .aggregate(avg=Avg("wait_time"))
+    from django.db.models import DurationField, ExpressionWrapper
+    from datetime import timedelta
+
+    wait_qs = tokens_today.filter(
+        status="completed",                 # ✅ ONLY completed patients
+        called_at__isnull=False             # ✅ must be called
+    ).annotate(
+        wait_time=ExpressionWrapper(
+            F("called_at") - F("booked_at"),
+            output_field=DurationField()
+        )
     )
+
+    # ✅ remove unrealistic long waits (data issues)
+    wait_qs = wait_qs.filter(wait_time__lte=timedelta(minutes=120))
+
+    avg_wait = wait_qs.aggregate(avg=Avg("wait_time"))
 
     avg_wait_minutes = 0
 
     if avg_wait["avg"]:
         avg_wait_minutes = int(avg_wait["avg"].total_seconds() / 60)
+
+    # ✅ UI safe clamp (optional but recommended)
+    avg_wait_minutes = max(5, min(avg_wait_minutes, 60))
+
 
     # =============================
     # Doctor Performance
@@ -518,12 +534,17 @@ def hospital_analytics(request):
     # Hourly Patient Load
     # =============================
 
+    from datetime import time
+
     hourly_data = (
         Token.objects.filter(
             hospital=hospital,
-            booked_at__date=today
+            called_at__date=today,
+            called_at__isnull=False,
+            called_at__time__gte=time(8, 0),   # ✅ OPD start
+            called_at__time__lte=time(20, 0)   # ✅ OPD end
         )
-        .annotate(hour=ExtractHour("booked_at"))
+        .annotate(hour=ExtractHour("called_at"))
         .values("hour")
         .annotate(count=Count("id"))
         .order_by("hour")

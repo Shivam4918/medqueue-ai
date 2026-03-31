@@ -20,6 +20,46 @@
             font-family: 'Inter', sans-serif;
             background: #F9FAFB;
         }
+
+        .sidebar-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 🔥 ACTIVE LINK STYLE */
+        .active-link {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        /* 🔥 LEFT GLOW BAR */
+        .active-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 4px;
+            background: #60A5FA;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #60A5FA;
+        }
+
+        /* 🔥 ICON COLOR CHANGE */
+        .active-link .sidebar-icon {
+            color: #93C5FD;
+        }
+
+        /* 🔥 HOVER EFFECT */
+        .sidebar-link:hover {
+            transform: translateX(5px);
+        }
+
+        /* 🔥 SMOOTH TRANSITION */
+        .sidebar-link,
+        .sidebar-icon {
+            transition: all 0.3s ease;
+        }
     </style>
 
 
@@ -49,33 +89,53 @@
         <div class="flex-1 flex flex-col justify-start pt-4 px-4 space-y-3">
             <nav class="space-y-2">
 
-                <a href="/dashboard/doctor/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <a href="/dashboard/doctor/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/dashboard/doctor/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 sidebar-icon"></i>
                     Doctor Dashboard
                 </a>
 
-                <a href="{% url 'dashboard:doctor_queue' %}"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="list-ordered" class="w-5 h-5"></i>
+                <a href="{% url 'dashboard:doctor_queue' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.resolver_match.url_name == 'doctor_queue' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="list-ordered" class="w-5 h-5 sidebar-icon"></i>
                     My Queue
                 </a>
 
-                <a href="{% url 'dashboard:doctor_patient_history' %}"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                <a href="{% url 'dashboard:doctor_patient_history' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.resolver_match.url_name == 'doctor_patient_history' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 sidebar-icon"></i>
                     Patient History
                 </a>
 
-                <a href="{% url 'dashboard:doctor_analytics' %}"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <a href="{% url 'dashboard:doctor_analytics' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.resolver_match.url_name == 'doctor_analytics' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 sidebar-icon"></i>
                     Analytics
                 </a>
 
-                <a href="{% url 'dashboard:doctor_profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="user" class="w-5 h-5"></i>
+                <a href="{% url 'dashboard:doctor_profile' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.resolver_match.url_name == 'doctor_profile' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="user" class="w-5 h-5 sidebar-icon"></i>
                     Profile
                 </a>
             </nav>
@@ -216,14 +276,6 @@
 
             });
 
-        });
-
-        const currentPath = window.location.pathname;
-
-        document.querySelectorAll("aside nav a").forEach(link => {
-            if (link.getAttribute("href") === currentPath) {
-                link.classList.add("bg-white/20");
-            }
         });
 
         document.addEventListener("DOMContentLoaded", function () {

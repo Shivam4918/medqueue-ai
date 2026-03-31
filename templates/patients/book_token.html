@@ -9,6 +9,19 @@ Book OPD Token
 {% block content %}
 
 <div class="max-w-4xl mx-auto space-y-8">
+    {% if messages %}
+    <div id="msg-box" class="space-y-3">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg
+        {% if message.tags == 'success' %} bg-green-100 text-green-700
+        {% elif message.tags == 'warning' %} bg-yellow-100 text-yellow-700
+        {% else %} bg-red-100 text-red-700
+        {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- PAGE HEADER -->
     <div class="flex items-center justify-between">
@@ -165,6 +178,19 @@ Book OPD Token
         doctorSelect.innerHTML = "<option>Select hospital first</option>"
 
     })
+
+    setTimeout(() => {
+        const box = document.getElementById("msg-box");
+        if (box) {
+            box.style.transition = "opacity 0.5s ease";
+            box.style.opacity = "0";
+
+            setTimeout(() => {
+                box.remove();
+            }, 500);
+        }
+    }, 3000);
+
 
 </script>
 

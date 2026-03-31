@@ -17,6 +17,46 @@
             font-family: 'Inter', sans-serif;
             background: #F9FAFB;
         }
+
+        .sidebar-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 🔥 ACTIVE LINK STYLE */
+        .active-link {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        /* 🔥 LEFT GLOW BAR */
+        .active-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 4px;
+            background: #60A5FA;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #60A5FA;
+        }
+
+        /* 🔥 ICON COLOR CHANGE */
+        .active-link .sidebar-icon {
+            color: #93C5FD;
+        }
+
+        /* 🔥 HOVER EFFECT */
+        .sidebar-link:hover {
+            transform: translateX(5px);
+        }
+
+        /* 🔥 SMOOTH TRANSITION */
+        .sidebar-link,
+        .sidebar-icon {
+            transition: all 0.3s ease;
+        }
     </style>
 
 </head>
@@ -45,39 +85,63 @@
         <div class="flex-1 flex flex-col justify-start pt-4 px-4 space-y-3">
             <nav class="space-y-2">
 
-                <a href="/hospitals/dashboard/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <a href="/hospitals/dashboard/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/hospitals/dashboard/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 sidebar-icon"></i>
                     Hospital Dashboard
                 </a>
 
-                <a href="/hospitals/doctors/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                <a href="/hospitals/doctors/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/hospitals/doctors/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="stethoscope" class="w-5 h-5 sidebar-icon"></i>
                     Doctors
                 </a>
 
-                <a href="/hospitals/queue-monitor/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="activity" class="w-5 h-5"></i>
+                <a href="/hospitals/queue-monitor/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/hospitals/queue-monitor/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="activity" class="w-5 h-5 sidebar-icon"></i>
                     Queue Monitor
                 </a>
 
-                <a href="/hospitals/staff/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="users" class="w-5 h-5"></i>
+                <a href="/hospitals/staff/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/hospitals/staff/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="users" class="w-5 h-5 sidebar-icon"></i>
                     Receptionists
                 </a>
 
-                <a href="/hospitals/analytics/"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <a href="/hospitals/analytics/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.path == '/hospitals/analytics/' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 sidebar-icon"></i>
                     Analytics
                 </a>
 
-                <a href="{% url 'hospital_profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 hover:bg-white/10 rounded-lg transition">
-                    <i data-lucide="building" class="w-5 h-5"></i>
+                <a href="{% url 'hospital_profile' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 relative
+{% if request.resolver_match.url_name == 'hospital_profile' %}
+active-link
+{% else %}
+hover:bg-white/10
+{% endif %}">
+                    <i data-lucide="user" class="w-5 h-5 sidebar-icon"></i>
                     Profile
                 </a>
             </nav>
@@ -102,24 +166,44 @@
                 {% block page_title %}{% endblock %}
             </h1>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 relative">
 
-                {% if hospital.profile_picture %}
+                <!-- CLICKABLE PROFILE -->
+                <button onclick="toggleUserMenu()" class="flex items-center gap-3">
 
-                <img src="{{ hospital.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border">
+                    {% if hospital.profile_picture %}
+                    <img src="{{ hospital.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border">
+                    {% else %}
+                    <div
+                        class="w-10 h-10 bg-blue-800 text-white rounded-full flex items-center justify-center font-semibold">
+                        {{ request.user.first_name|first }}
+                    </div>
+                    {% endif %}
 
-                {% else %}
+                    <div class="text-left">
+                        <p class="font-semibold">{{ request.user.first_name }}</p>
+                        <p class="text-sm text-gray-500">Hospital Admin</p>
+                    </div>
 
-                <div
-                    class="w-10 h-10 bg-blue-800 text-white rounded-full flex items-center justify-center font-semibold">
-                    {{ request.user.first_name|first }}
-                </div>
+                </button>
 
-                {% endif %}
+                <!-- 🔽 DROPDOWN -->
+                <div id="userMenu"
+                    class="hidden absolute right-0 top-14 w-56 bg-white rounded-lg shadow-lg border z-50">
 
-                <div>
-                    <p class="font-semibold">{{ request.user.first_name }}</p>
-                    <p class="text-sm text-gray-500">Hospital Admin</p>
+                    <a href="{% url 'hospital_profile' %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+                        <i data-lucide="user" class="w-5 h-5 sidebar-icon"></i>
+                        <span>Profile</span>
+                    </a>
+
+                    <hr>
+
+                    <button onclick="openLogoutModal()"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span>Logout</span>
+                    </button>
+
                 </div>
 
             </div>
@@ -183,17 +267,22 @@
             document.getElementById("logoutModal").classList.add("hidden")
         }
 
-        const currentPath = window.location.pathname;
-
-        document.querySelectorAll("aside nav a").forEach(link => {
-            if (link.getAttribute("href") === currentPath) {
-                link.classList.add("bg-white/20");
-            }
-        });
-
         document.addEventListener("DOMContentLoaded", function () {
             lucide.createIcons();
         });
+
+        function toggleUserMenu() {
+            const menu = document.getElementById("userMenu")
+            menu.classList.toggle("hidden")
+        }
+
+        /* OPTIONAL: close when clicking outside */
+        document.addEventListener("click", function (e) {
+            const menu = document.getElementById("userMenu")
+            if (!e.target.closest("#userMenu") && !e.target.closest("button")) {
+                menu.classList.add("hidden")
+            }
+        })
     </script>
 
 </body>

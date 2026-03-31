@@ -464,7 +464,14 @@ def doctor_dashboard(request):
         status__in=["waiting", "in_service"]
     ).order_by("token_number")
 
-    today_tokens = Token.objects.filter(doctor=doctor).count()
+    # ✅ TOTAL (ALL TIME)
+    total_tokens = Token.objects.filter(doctor=doctor).count()
+
+    # ✅ TODAY ONLY
+    today_tokens = Token.objects.filter(
+        doctor=doctor,
+        booked_at__date=timezone.localdate()
+    ).count()
 
     waiting_tokens = Token.objects.filter(
         doctor=doctor,
@@ -479,14 +486,14 @@ def doctor_dashboard(request):
     context = {
         "doctor": doctor,
         "tokens": tokens,
+        "total_tokens": total_tokens,
         "today_tokens": today_tokens,
         "waiting_tokens": waiting_tokens,
-        "serving_token": serving.token_number if serving else None,
+        "serving_token": serving.display_token if serving else None,
         "is_available": is_available
     }
 
     return render(request, "doctors/doctor_dashboard.html", context)
-
 
 @login_required
 @role_required("doctor")
@@ -1063,20 +1070,20 @@ def book_token_view(request):
 
     hospitals = Hospital.objects.all().order_by("name")
 
-    # 🔴 prevent multiple active tokens
-    existing_token = Token.objects.filter(
-        patient=patient,
-        status__in=["waiting", "in_service"]
-    ).first()
-
-    if existing_token:
-        messages.warning(
-            request,
-           f"You already have an active token ({existing_token.display_token})."
-        )
-        return redirect("dashboard:patient_dashboard")
-
     if request.method == "POST":
+
+        # 🔴 check active token ONLY on submit
+        existing_token = Token.objects.filter(
+            patient=patient,
+            status__in=["waiting", "in_service"]
+        ).first()
+
+        if existing_token:
+            messages.warning(
+                request,
+                f"You already have an active token ({existing_token.display_token})."
+            )
+            return redirect("dashboard:book_token")   # ✅ stay same page
 
         hospital_id = request.POST.get("hospital")
         doctor_id = request.POST.get("doctor")
@@ -1122,7 +1129,7 @@ def book_token_view(request):
             f"Token {token.display_token} booked successfully!"
         )
 
-        return redirect("dashboard:patient_dashboard")
+        return redirect("dashboard:book_token")   # ✅ stay here
 
     return render(
         request,
@@ -1404,12 +1411,19 @@ def patient_queue_status(request):
         token.token_number
     )
 
+    queue_length = Token.objects.filter(
+        doctor=token.doctor,
+        status__in=["waiting", "in_service"],
+        booked_at__date=today
+    ).count()
+
     return JsonResponse({
         "has_token": True,
         "display_token": token.display_token,
         "now_serving_display": running_token.display_token if running_token else None,
         "position": people_before + 1,
-        "estimated_wait": minutes
+        "estimated_wait": minutes,
+        "queue_length": queue_length
     })
 
 #------------

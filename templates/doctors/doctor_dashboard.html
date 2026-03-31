@@ -13,11 +13,18 @@ Doctor Dashboard
 {% block content %}
 
 <!-- ===== STATS ===== -->
-<div class="grid grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
 
     <div class="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-        <p class="text-sm text-gray-500">Today's Tokens</p>
-        <p class="text-3xl font-bold mt-2">{{ today_tokens|default:0 }}</p>
+        <p class="text-sm text-gray-500">Total Patients</p>
+        <p class="text-3xl font-bold mt-2">{{ total_tokens|default:0 }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-indigo-500">
+        <p class="text-sm text-gray-500">Today's Patients</p>
+        <p class="text-3xl font-bold mt-2 text-indigo-600">
+            {{ today_tokens|default:0 }}
+        </p>
     </div>
 
     <div class="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-500">
