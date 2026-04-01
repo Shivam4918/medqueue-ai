@@ -16,6 +16,7 @@ db.sqlite3
 media/
 staticfiles/
 static/
+media/
 
 # VS Code
 .vscode/
@@ -26,3 +27,6 @@ Thumbs.db
 
 # Node (if used in frontend)
 node_modules/
+
+# Docker
+docker-compose.override.yml

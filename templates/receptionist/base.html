@@ -177,31 +177,54 @@ hover:bg-white/10
                     <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                 </button>
 
-                <a href="{% url 'dashboard:receptionist_profile' %}"
-                    class="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
+                <div class="relative" id="userDropdownWrapper">
 
-                    <!-- PROFILE IMAGE -->
-                    {% if request.user.profile_picture %}
-                    <img src="{{ request.user.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover border">
-                    {% else %}
-                    <div
-                        class="w-9 h-9 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full font-semibold">
-                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    <!-- CLICKABLE PROFILE -->
+                    <button onclick="toggleUserMenu()"
+                        class="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
+
+                        {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}"
+                            class="w-9 h-9 rounded-full object-cover border">
+                        {% else %}
+                        <div
+                            class="w-9 h-9 bg-[#1E3A8A] text-white flex items-center justify-center rounded-full font-semibold">
+                            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                        </div>
+                        {% endif %}
+
+                        <div class="text-left">
+                            <p class="text-sm font-semibold leading-tight">
+                                {{ request.user.first_name }} {{ request.user.last_name }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                Receptionist
+                            </p>
+                        </div>
+
+                    </button>
+
+                    <!-- 🔽 DROPDOWN -->
+                    <div id="userMenu"
+                        class="hidden absolute right-0 top-14 w-48 bg-white rounded-lg shadow-lg border z-50">
+
+                        <a href="{% url 'dashboard:receptionist_profile' %}"
+                            class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                            Profile
+                        </a>
+
+                        <hr>
+
+                        <button onclick="openLogoutModal()"
+                            class="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                            Logout
+                        </button>
+
                     </div>
-                    {% endif %}
 
-                    <!-- NAME -->
-                    <div class="text-left">
-                        <p class="text-sm font-semibold leading-tight">
-                            {{ request.user.first_name }} {{ request.user.last_name }}
-                        </p>
-
-                        <p class="text-xs text-gray-500">
-                            Receptionist
-                        </p>
-                    </div>
-
-                </a>
+                </div>
 
             </div>
 
@@ -290,6 +313,20 @@ hover:bg-white/10
                 el.style.display = "none";
             });
         }, 3000);
+
+        // DROPDOWN TOGGLE
+        function toggleUserMenu() {
+            const menu = document.getElementById("userMenu")
+            menu.classList.toggle("hidden")
+        }
+
+        // CLOSE ON OUTSIDE CLICK
+        document.addEventListener("click", function (e) {
+            const menu = document.getElementById("userMenu")
+            if (!e.target.closest("#userDropdownWrapper")) {
+                menu.classList.add("hidden")
+            }
+        })
     </script>
 
 </body>
