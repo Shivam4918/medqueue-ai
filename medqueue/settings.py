@@ -108,7 +108,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'medqueue.wsgi.application'
 ASGI_APPLICATION = 'medqueue.asgi.application'
-REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+REDIS_URL = os.environ.get('REDIS_URL')
 
 
 
@@ -118,11 +118,11 @@ REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQL_DB', 'medqueue'),
-        'USER': os.getenv('MYSQL_USER', 'medqueue_user'),
-        'PASSWORD': os.getenv('MYSQL_PASS', 'Shivam4918@'),
-        'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),
-        'PORT': os.getenv('MYSQL_PORT', '3307'),
+        'NAME': os.environ['MYSQL_DB'],
+        'USER': os.environ['MYSQL_USER'],
+        'PASSWORD': os.environ['MYSQL_PASS'],
+        'HOST': os.environ['MYSQL_HOST'],
+        'PORT': os.environ['MYSQL_PORT'],
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             # 'charset': 'utf8mb4', # Django 3+ handles charset automatically
@@ -143,7 +143,7 @@ if os.getenv('FORCE_SQLITE', '') == '1':
 
 
 # MongoDB connection string (for analytics/ML)
-MONGO_URL = os.getenv('MONGO_URL', 'mongodb://127.0.0.1:27017')
+MONGO_URL = os.environ.get('MONGO_URL')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
