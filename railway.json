@@ -5,7 +5,7 @@
     "buildCommand": "bash build.sh"
   },
   "deploy": {
-    "startCommand": "daphne -b 0.0.0.0 -p $PORT medqueue.asgi:application",
+    "startCommand": "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT medqueue.asgi:application",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
