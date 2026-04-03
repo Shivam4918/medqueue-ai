@@ -10,176 +10,248 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
         }
 
-        .glass {
-            backdrop-filter: blur(14px);
-            background: rgba(255, 255, 255, 0.6);
+        .fade-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .card-hover {
-            transition: all 0.35s ease;
+        .fade-up.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .card-hover:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        .bento-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            background: white;
         }
 
-        .icon {
-            transition: 0.3s;
+        .bento-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06);
+            border-color: rgba(37, 99, 235, 0.1);
         }
 
-        .card-hover:hover .icon {
-            transform: scale(1.2);
+        .role-icon {
+            transition: transform 0.4s ease;
+        }
+
+        .bento-card:hover .role-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+            z-index: -1;
         }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-[#EFF6FF] via-[#F9FAFB] to-[#ECFDF5] text-gray-800">
+<body class="bg-[#FDFDFD] text-slate-900 overflow-x-hidden min-h-screen flex flex-col">
 
-    <!-- NAVBAR -->
-    <header class="bg-white/80 backdrop-blur border-b sticky top-0 z-50">
+    <!-- ================= NAVBAR ================= -->
+    <header class="bg-white/80 backdrop-blur border-b border-slate-100 sticky top-0 z-[100]">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
+            <!-- LOGO -->
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                <div
+                    class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
                     <i data-lucide="activity" class="text-white w-5 h-5"></i>
                 </div>
-
                 <div class="flex flex-col">
-                    <span class="text-xl font-extrabold tracking-tight leading-none">MedQueue <span
+                    <span class="text-xl font-black tracking-tight leading-none text-slate-800">MedQueue <span
                             class="text-blue-600">AI</span></span>
-                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Next-Gen
+                    <span class="text-[9px] uppercase font-bold tracking-[0.2em] text-slate-400">Next-Gen
                         Healthcare</span>
                 </div>
             </div>
 
-            <a href="/" class="text-sm text-gray-600 hover:text-blue-600 transition">
-                ← Back Home
+            <a href="/"
+                class="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition"></i> Back to Home
             </a>
-
         </div>
     </header>
 
-    <!-- HERO -->
-    <section class="py-16 text-center px-6">
-        <h2 class="text-4xl md:text-5xl font-extrabold text-[#1E3A8A] mb-4">
-            Staff Portal
-        </h2>
+    <!-- ================= HERO ================= -->
+    <section class="relative pt-2 pb-12 overflow-hidden">
+        <div class="glow top-0 left-1/2 -translate-x-1/2"></div>
 
-        <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-            Secure login access for hospital staff, doctors, and administrators.
-        </p>
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <div class="fade-up show">
+                <span
+                    class="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-[10px] font-black bg-slate-100 text-slate-500 rounded-full tracking-[0.2em] uppercase">
+                    Security Gateway
+                </span>
+
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-6">
+                    Accessbility <span class="text-blue-600">Staff Portal.</span>
+                </h1>
+
+                <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto">
+                    Select your clinical role to access your dedicated dashboard. Secure, encrypted, and real-time
+                    management for medical professionals.
+                </p>
+            </div>
+        </div>
     </section>
 
-    <!-- ROLE CARDS -->
-    <section class="pb-20 px-6">
+    <!-- ================= ROLE SELECTOR (BENTO GRID) ================= -->
+    <section class="pb-32 px-6 flex-grow">
         <div class="max-w-6xl mx-auto">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                <!-- ADMIN -->
-                <div class="glass card-hover p-8 rounded-2xl border text-center flex flex-col justify-between h-full">
-
+                <!-- ADMIN CARD -->
+                <div class="bento-card p-10 rounded-[2.5rem] flex flex-col justify-between fade-up show"
+                    style="transition-delay: 100ms">
                     <div>
-                        <div class="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-blue-100">
-                            <i data-lucide="building-2" class="icon w-6 h-6 text-blue-600"></i>
+                        <div
+                            class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-8 shadow-sm role-icon">
+                            <i data-lucide="building-2" class="text-blue-600 w-8 h-8"></i>
                         </div>
-
-                        <h3 class="font-semibold text-lg text-[#1E3A8A]">Hospital Admin</h3>
-
-                        <p class="text-sm text-gray-500 mt-2 mb-6">
-                            Manage hospital, doctors & analytics.
+                        <h3 class="text-2xl font-black text-slate-800 mb-3">Hospital Admin</h3>
+                        <p class="text-slate-400 text-sm font-medium leading-relaxed mb-10">
+                            Configure departments, manage doctor schedules, and view hospital-wide OPD analytics.
                         </p>
                     </div>
-
                     <a href="{% url 'users:hospital_login' %}"
-                        class="mt-auto block py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md hover:shadow-lg">
-                        Login
+                        class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-center hover:bg-blue-600 hover:-translate-y-1 transition-all shadow-xl shadow-slate-100">
+                        Admin Login
                     </a>
                 </div>
 
-                <!-- DOCTOR -->
-                <div class="glass card-hover p-8 rounded-2xl border text-center flex flex-col justify-between h-full">
-
+                <!-- DOCTOR CARD -->
+                <div class="bento-card p-10 rounded-[2.5rem] flex flex-col justify-between fade-up show"
+                    style="transition-delay: 200ms">
                     <div>
-                        <div class="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-green-100">
-                            <i data-lucide="stethoscope" class="icon w-6 h-6 text-green-600"></i>
+                        <div
+                            class="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-8 shadow-sm role-icon">
+                            <i data-lucide="stethoscope" class="text-teal-600 w-8 h-8"></i>
                         </div>
-
-                        <h3 class="font-semibold text-lg text-green-700">Doctor</h3>
-
-                        <p class="text-sm text-gray-500 mt-2 mb-6">
-                            Manage OPD queue & patients.
+                        <h3 class="text-2xl font-black text-slate-800 mb-3">Doctor</h3>
+                        <p class="text-slate-400 text-sm font-medium leading-relaxed mb-10">
+                            Access your live patient queue, call next tokens, and manage consultation status.
                         </p>
                     </div>
-
                     <a href="{% url 'users:doctor_login' %}"
-                        class="mt-auto block py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition shadow-md hover:shadow-lg">
-                        Login
+                        class="w-full py-4 bg-teal-600 text-white rounded-2xl font-bold text-center hover:bg-teal-500 hover:-translate-y-1 transition-all shadow-xl shadow-teal-50">
+                        Doctor Login
                     </a>
                 </div>
 
-                <!-- RECEPTION -->
-                <div class="glass card-hover p-8 rounded-2xl border text-center flex flex-col justify-between h-full">
-
+                <!-- RECEPTION CARD -->
+                <div class="bento-card p-10 rounded-[2.5rem] flex flex-col justify-between fade-up show"
+                    style="transition-delay: 300ms">
                     <div>
-                        <div class="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-orange-100">
-                            <i data-lucide="clipboard-list" class="icon w-6 h-6 text-orange-600"></i>
+                        <div
+                            class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-8 shadow-sm role-icon">
+                            <i data-lucide="clipboard-list" class="text-orange-600 w-8 h-8"></i>
                         </div>
-
-                        <h3 class="font-semibold text-lg text-orange-600">Receptionist</h3>
-
-                        <p class="text-sm text-gray-500 mt-2 mb-6">
-                            Handle tokens & patient flow.
+                        <h3 class="text-2xl font-black text-slate-800 mb-3">Receptionist</h3>
+                        <p class="text-slate-400 text-sm font-medium leading-relaxed mb-10">
+                            Generate tokens, handle walk-in patients, and manage the front-desk traffic flow.
                         </p>
                     </div>
-
                     <a href="{% url 'users:reception_login' %}"
-                        class="mt-auto block py-3 rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition shadow-md hover:shadow-lg">
-                        Login
+                        class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-center hover:bg-orange-600 hover:-translate-y-1 transition-all shadow-xl shadow-orange-50">
+                        Staff Login
                     </a>
                 </div>
 
-                <!-- SUPER ADMIN -->
-                <div class="glass card-hover p-8 rounded-2xl border text-center flex flex-col justify-between h-full">
-
+                <!-- SUPER ADMIN CARD -->
+                <div class="bento-card p-10 rounded-[2.5rem] flex flex-col justify-between fade-up show"
+                    style="transition-delay: 400ms">
                     <div>
-                        <div class="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-red-100">
-                            <i data-lucide="shield" class="icon w-6 h-6 text-red-600"></i>
+                        <div
+                            class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-8 shadow-sm role-icon">
+                            <i data-lucide="shield-check" class="text-red-600 w-8 h-8"></i>
                         </div>
-
-                        <h3 class="font-semibold text-lg text-red-600">Super Admin</h3>
-
-                        <p class="text-sm text-gray-500 mt-2 mb-6">
-                            Full platform control.
+                        <h3 class="text-2xl font-black text-slate-800 mb-3">System Root</h3>
+                        <p class="text-slate-400 text-sm font-medium leading-relaxed mb-10">
+                            Full platform infrastructure control, security audits, and global system maintenance.
                         </p>
                     </div>
-
                     <a href="/admin/login/"
-                        class="mt-auto block py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 transition shadow-md hover:shadow-lg">
-                        Login
+                        class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold text-center hover:bg-red-700 hover:-translate-y-1 transition-all shadow-xl shadow-red-50">
+                        Superuser
                     </a>
                 </div>
 
             </div>
 
+            <!-- SECURITY NOTICE -->
+            <div class="mt-16 bg-slate-50 border border-slate-100 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 fade-up show"
+                style="transition-delay: 500ms">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                        <i data-lucide="lock" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-700">Encrypted Access</h4>
+                        <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mt-1">SSL Protected • 2FA
+                            Enabled</p>
+                    </div>
+                </div>
+                <div class="text-slate-400 text-xs font-medium max-w-md text-center md:text-right leading-relaxed">
+                    Unauthorized access to this portal is strictly prohibited and monitored.
+                    Your IP and login attempts are logged for security purposes.
+                </div>
+            </div>
+
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="bg-[#1E3A8A] text-gray-200 py-6 text-center text-sm">
-        © 2026 MedQueue AI — Secure Access System
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-white border-t border-slate-100 py-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 bg-slate-200 rounded flex items-center justify-center">
+                    <i data-lucide="activity" class="text-slate-500 w-3 h-3"></i>
+                </div>
+                <span class="text-xs font-black tracking-tight text-slate-400 uppercase">MedQueue AI — Secure Access
+                    Hub</span>
+            </div>
+            <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">© 2026 Platform Security Team.
+            </p>
+        </div>
     </footer>
 
     <script>
-        lucide.createIcons();
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lucide Icons
+            lucide.createIcons();
+
+            // Intersection Observer for Animations
+            const elements = document.querySelectorAll(".fade-up");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("show");
+                    }
+                });
+            }, { threshold: 0.1 });
+            elements.forEach(el => observer.observe(el));
+        });
     </script>
 
 </body>
