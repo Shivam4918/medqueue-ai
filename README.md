@@ -1,88 +1,72 @@
-# 🚑 MedQueue AI – Real-Time Hospital Queue Management System
+# 🚑 MedQueue AI
 
-MedQueue AI is a **scalable, AI-powered hospital OPD queue management platform** designed to digitize patient flow, reduce waiting time, and improve hospital efficiency using **real-time systems and machine learning**.
+### Real-Time Hospital Queue Management System (AI-Powered SaaS)
 
----
+\
 
-## 📌 Problem Statement
+## 🌐 Overview
 
-In many hospitals, patient queues are managed manually, leading to:
+MedQueue AI is a **scalable, AI-powered SaaS platform** designed to digitize hospital OPD queue management.
+It leverages **real-time systems, machine learning, and modern web technologies** to improve patient experience and hospital efficiency.
 
-- ⏳ Long waiting times (2–5 hours)
-- ❌ No real-time visibility of queue status
-- 🧓 Poor experience for elderly and critical patients
-- 🚨 No structured emergency prioritization
-- 📊 Lack of analytics for hospital management
+## 🎯 Key Highlights
 
----
+- ⚡ Real-time queue tracking using **WebSockets + Redis**
+- 🤖 AI-based waiting time prediction (Random Forest, LightGBM)
+- 🏥 Multi-role system (Patient, Doctor, Hospital Admin, Receptionist, Super Admin)
+- 📊 Analytics dashboard for data-driven decisions
+- 🔐 Secure authentication with JWT & RBAC
 
-## 🚀 Solution
+## 📸 Screenshots
 
-MedQueue AI transforms traditional queue systems into a **smart, digital, and AI-driven platform** with:
+### 🏠 Dashboard Overview
 
-- 🎟️ Digital token generation (online + walk-in)
-- 📡 Real-time queue tracking using WebSockets
-- 🤖 AI-based waiting time prediction
-- ⚡ Emergency case prioritization
-- 📊 Analytics dashboard for hospitals
+### 🎟️ Token Booking Interface
 
----
+### 📡 Live Queue Tracking
 
-## 🧠 Key Features
+Real-time updates powered by WebSockets\
 
-### 👤 Patient Module
+### 👨‍⚕️ Doctor Panel
 
-- Book tokens online
-- View live queue position
-- Get estimated waiting time
-- Receive notifications before turn
+### 🏥 Admin Analytics Dashboard
 
-### 👨‍⚕️ Doctor Module
+### 🤖 AI Waiting Time Prediction
 
-- View and manage queue
-- Call / Skip / Complete patients
-- Handle emergency priority cases
-- Track consultation performance
+## 🧠 Problem Solved
 
-### 🧑‍💼 Reception Module
+Traditional hospital queue systems suffer from:
 
-- Add walk-in patients
-- Generate tokens instantly
-- Manage real-time queue
+- Long waiting times (2–5 hours)
+- No real-time visibility
+- Poor emergency handling
+- Lack of analytics
 
-### 🏥 Admin Dashboard
+👉 MedQueue AI solves this with automation, AI, and real-time tracking.
 
-- Monitor hospital operations
-- Analyze patient flow
-- Track average waiting time
-- Export reports (CSV/PDF)
+## 🏗️ System Architecture
 
----
-
-## ⚡ Real-Time System
-
-- WebSocket-based live updates (Django Channels)
-- Redis for high-speed message broadcasting
-- Instant queue synchronization across all users
-
----
-
-## 🤖 AI / Machine Learning
-
-- **Random Forest** → Waiting time prediction
-- **LightGBM** → Crowd forecasting
-- Predicts:
-  - Patient wait time
-  - Peak hours
-  - Doctor workload
-
----
+```
+Client Layer (Patient / Doctor / Admin)
+        ↓
+Frontend (HTML, Tailwind, JS, HTMX)
+        ↓
+Django Backend (REST APIs)
+        ↓
+-----------------------------------------
+| MySQL | MongoDB | Redis (Cache/Queue) |
+-----------------------------------------
+        ↓
+Django Channels (WebSockets)
+        ↓
+AI Prediction Engine (ML Models)
+```
 
 ## 🛠️ Tech Stack
 
 ### 🔹 Backend
 
-- Python, Django
+- Django
 - Django REST Framework (DRF)
 
 ### 🔹 Frontend
@@ -92,105 +76,95 @@ MedQueue AI transforms traditional queue systems into a **smart, digital, and AI
 
 ### 🔹 Databases
 
-- MySQL (Structured data)
-- MongoDB (Logs & analytics)
+- MySQL (Relational Data)
+- MongoDB (Logs & Analytics)
 
-### 🔹 Real-Time & Caching
+### 🔹 Real-Time
 
 - Django Channels
 - Redis
 
-### 🔹 AI/ML
+### 🔹 AI / ML
 
-- Scikit-learn
+- Random Forest
 - LightGBM
+- Predictive Analytics
 
 ### 🔹 Security
 
 - JWT Authentication
 - Role-Based Access Control (RBAC)
 
----
+## 🔌 API Overview
 
-## 🏗️ System Architecture
+| Method | Endpoint          | Description        |
+| ------ | ----------------- | ------------------ |
+| POST   | `/api/token/`     | Create new token   |
+| GET    | `/api/queue/`     | Get live queue     |
+| POST   | `/api/emergency/` | Emergency priority |
+| GET    | `/api/predict/`   | Get AI prediction  |
 
+## ⚙️ Installation
+
+```bash
+git clone https://github.com/your-username/medqueue-ai.git
+cd medqueue-ai
+
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+
+python manage.py migrate
+python manage.py runserver
 ```
-Client (Patient / Doctor / Admin)
-        ↓
-Frontend (Web UI)
-        ↓
-Django Backend (REST APIs)
-        ↓
----------------------------------
-| MySQL | MongoDB | Redis |
----------------------------------
-        ↓
-AI Prediction Engine
-```
 
----
+## 🚀 Deployment
+
+- Render / Railway (Backend)
+- MongoDB Atlas (Database)
+- Redis Cloud (Real-time engine)
 
 ## 📊 Impact
 
-- ⏱️ Reduced patient waiting time by **40–50%**
-- 📈 Improved hospital workflow efficiency
-- 🔄 Real-time transparency in queue management
-- 🏥 Scalable across multiple hospitals
-
----
+- ⏱️ Reduced waiting time by **40–50%**
+- 📈 Improved operational efficiency
+- 🔄 Real-time transparency
+- 🏥 Scalable for multi-hospital systems
 
 ## 🔐 Security Features
 
 - JWT-based authentication
-- Role-based access control (RBAC)
+- RBAC (multi-role access)
 - Input validation & rate limiting
-- Secure API communication
+- Secure API communication (HTTPS)
 
----
+## 📈 Future Scope
 
-## 📦 Installation & Setup
+- 📱 Mobile App (Flutter / React Native)
+- 🏥 Multi-hospital SaaS platform
+- 🔔 WhatsApp/SMS notifications
+- ☁️ Kubernetes deployment
+- 📊 Advanced AI models (Deep Learning)
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/medqueue-ai.git
+## 📁 Project Structure
 
-# Navigate to project
-cd medqueue-ai
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run migrations
-python manage.py migrate
-
-# Start server
-python manage.py runserver
 ```
-
----
-
-## 📈 Future Enhancements
-
-- 📱 Mobile application (Android/iOS)
-- 🏥 Multi-hospital SaaS deployment
-- 🔔 SMS/WhatsApp notifications
-- ☁️ Cloud deployment (AWS / Render)
-- 📊 Advanced AI models for prediction
-
----
+medqueue-ai/
+│── backend/
+│── frontend/
+│── models/
+│── api/
+│── requirements.txt
+│── README.md
+```
 
 ## 👨‍💻 Author
 
-**Prajapati Shivam **
+**Shivam Prajapati**
 📧 [shivam4918@gmail.com](mailto:shivam4918@gmail.com)
 🔗 https://www.linkedin.com/in/prajapati-shivam-647465241
 
----
+## ⭐ Show Your Support
 
-## ⭐ Support
-
-If you like this project, consider giving it a ⭐ on GitHub!
+If you found this project useful, give it a ⭐ on GitHub!
