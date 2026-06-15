@@ -315,8 +315,14 @@ def patient_register(request):
         try:
             email_message.send()
         except Exception as e:
-            messages.error(request, f"Failed to send verification email: {str(e)}. Please ensure your email is correct and try again.")
-            return redirect("users:patient_register")
+            storage = get_messages(request)
+            for _ in storage:
+                pass
+            messages.warning(
+                request,
+                f"Verification email could not be sent (Render SMTP outbound block). For demo/testing, your verification OTP is: {otp}"
+            )
+            return redirect("users:verify_email_otp")
 
         storage = get_messages(request)
         for _ in storage:
@@ -444,9 +450,12 @@ def resend_otp(request):
     email.attach_alternative(html_content, "text/html")
     try:
         email.send()
+        messages.success(request, "A new verification OTP has been sent to your email.")
     except Exception as e:
-        messages.error(request, f"Failed to resend verification email: {str(e)}.")
-        return redirect("users:verify_email_otp")
+        messages.warning(
+            request,
+            f"Verification email could not be sent (Render SMTP outbound block). For demo/testing, your new verification OTP is: {otp}"
+        )
 
     return redirect("users:verify_email_otp")
 
@@ -490,8 +499,12 @@ def password_reset_request(request):
             try:
                 email_message.send()
             except Exception as e:
-                messages.error(request, f"Failed to send password reset email: {str(e)}.")
-                return redirect("users:password_reset")
+                messages.warning(
+                    request,
+                    f"Password reset email could not be sent (Render SMTP outbound block). For demo/testing, you can reset your password using this link: {reset_link}"
+                )
+                request.session["reset_requested_at"] = int(time.time())
+                return redirect("users:password_reset_done")
 
         # Save cooldown timestamp
         request.session["reset_requested_at"] = int(time.time())

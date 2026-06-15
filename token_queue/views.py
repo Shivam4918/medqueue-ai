@@ -264,7 +264,10 @@ class WalkinTokenAPIView(APIView):
             )
 
             email_msg.attach_alternative(html_content, "text/html")
-            email_msg.send()
+            try:
+                email_msg.send()
+            except Exception as e:
+                print(f"Failed to send walk-in token email: {str(e)}")
 
         return Response({
             "token_id": token.id,
