@@ -312,7 +312,11 @@ def patient_register(request):
         )
 
         email_message.attach_alternative(html_content, "text/html")
-        email_message.send()
+        try:
+            email_message.send()
+        except Exception as e:
+            messages.error(request, f"Failed to send verification email: {str(e)}. Please ensure your email is correct and try again.")
+            return redirect("users:patient_register")
 
         storage = get_messages(request)
         for _ in storage:
@@ -438,7 +442,11 @@ def resend_otp(request):
     )
 
     email.attach_alternative(html_content, "text/html")
-    email.send()
+    try:
+        email.send()
+    except Exception as e:
+        messages.error(request, f"Failed to resend verification email: {str(e)}.")
+        return redirect("users:verify_email_otp")
 
     return redirect("users:verify_email_otp")
 
@@ -479,7 +487,11 @@ def password_reset_request(request):
             )
 
             email_message.attach_alternative(html_content, "text/html")
-            email_message.send()
+            try:
+                email_message.send()
+            except Exception as e:
+                messages.error(request, f"Failed to send password reset email: {str(e)}.")
+                return redirect("users:password_reset")
 
         # Save cooldown timestamp
         request.session["reset_requested_at"] = int(time.time())
