@@ -106,6 +106,7 @@ REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+import dj_database_url
 
 DATABASES = {
     'default': {
@@ -122,6 +123,11 @@ DATABASES = {
     }
 }
 
+if os.getenv('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True
+    )
 
 # if FORCE_SQLITE present, fallback to sqlite for quick local dev
 if os.getenv('FORCE_SQLITE', '') == '1':
