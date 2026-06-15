@@ -12,7 +12,7 @@ def get_mongo_url():
 
 
 def get_mongo_client():
-    return MongoClient(get_mongo_url())
+    return MongoClient(get_mongo_url(), serverSelectionTimeoutMS=2000)
 
 
 def get_analytics_db():

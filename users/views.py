@@ -286,6 +286,9 @@ def patient_register(request):
             "otp_created": time.time()
         }
 
+        # Dev visibility in logs
+        print(f"\n[REGISTRATION OTP] Email: {email}, OTP: {otp}\n")
+
         # ==============================
         # SEND PROFESSIONAL OTP EMAIL
         # ==============================

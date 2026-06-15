@@ -6,8 +6,11 @@ class AnalyticsConfig(AppConfig):
     name = 'analytics'
 
     def ready(self):
-        try:
-            from .mongo_client import ensure_indexes
-            ensure_indexes()
-        except Exception as e:
-            print("MongoDB not ready, skipping index creation:", e)
+        import threading
+        def run_indexing():
+            try:
+                from .mongo_client import ensure_indexes
+                ensure_indexes()
+            except Exception as e:
+                print("MongoDB index creation background task failed:", e)
+        threading.Thread(target=run_indexing, daemon=True).start()

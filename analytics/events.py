@@ -1,3 +1,4 @@
+import threading
 from datetime import datetime
 from typing import Optional, Dict
 
@@ -44,21 +45,28 @@ def log_event(
     if not hospital_id:
         raise ValueError("hospital_id is required")
 
-    # -------------------------
-    # MongoDB Collection
-    # -------------------------
-    collection = get_events_collection()
+    def save_event():
+        try:
+            # -------------------------
+            # MongoDB Collection
+            # -------------------------
+            collection = get_events_collection()
 
-    # -------------------------
-    # Event Document
-    # -------------------------
-    document = {
-        "event": event,
-        "hospital_id": int(hospital_id),
-        "doctor_id": int(doctor_id) if doctor_id else None,
-        "token_id": int(token_id) if token_id else None,
-        "timestamp": datetime.utcnow(),
-        "meta": meta or {},
-    }
+            # -------------------------
+            # Event Document
+            # -------------------------
+            document = {
+                "event": event,
+                "hospital_id": int(hospital_id),
+                "doctor_id": int(doctor_id) if doctor_id else None,
+                "token_id": int(token_id) if token_id else None,
+                "timestamp": datetime.utcnow(),
+                "meta": meta or {},
+            }
 
-    collection.insert_one(document)
+            collection.insert_one(document)
+        except Exception as e:
+            print(f"Failed to log event to MongoDB: {e}")
+
+    threading.Thread(target=save_event, daemon=True).start()
+
